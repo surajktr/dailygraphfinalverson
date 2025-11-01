@@ -257,24 +257,24 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
 
   return (
     <div className="w-full h-full overflow-auto hide-scrollbar relative">
-      <div 
-        className="relative"
-        style={{ 
-          transform: `scale(${zoom / 100})`, 
-          transformOrigin: 'top left', 
-          width: `${100 / (zoom / 100)}%`,
-          height: `${100 / (zoom / 100)}%`
-        }}
-      >
-        <div ref={contentRef} className="w-full h-full" />
-        <canvas
-          ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
-          style={{ 
-            pointerEvents: drawingTool ? 'auto' : 'none',
-            zIndex: drawingTool ? 10 : -1
+      <div className="relative">
+        <div
+          className="relative"
+          style={{
+            // Use CSS zoom to avoid creating a containing block that breaks fixed-position overlays
+            zoom: zoom / 100,
           }}
-        />
+        >
+          <div ref={contentRef} className="w-full h-full" />
+          <canvas
+            ref={canvasRef}
+            className="absolute top-0 left-0 w-full h-full pointer-events-none"
+            style={{
+              pointerEvents: drawingTool ? 'auto' : 'none',
+              zIndex: drawingTool ? 10 : -1,
+            }}
+          />
+        </div>
       </div>
     </div>
   );
