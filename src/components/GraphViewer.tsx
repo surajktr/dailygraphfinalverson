@@ -80,11 +80,12 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
 
   useEffect(() => {
     const loadGraph = async () => {
+      // Reset content first to force re-render
+      setHtmlContent("");
       setLoading(true);
       setError(null);
 
       try {
-        // Fetch from database
         const { data, error: dbError } = await supabase
           .from("daily_graphs")
           .select("html_content")
@@ -93,13 +94,15 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
 
         if (dbError) throw dbError;
 
-        if (data) {
+        if (data && data.html_content) {
           setHtmlContent(data.html_content);
         } else {
-          setError("No graph found for this date");
+          setError("No content found for this date");
+          setHtmlContent("");
         }
       } catch (err: any) {
-        setError(err.message || "Failed to load graph");
+        setError(err.message || "Failed to load content");
+        setHtmlContent("");
       } finally {
         setLoading(false);
       }
@@ -109,7 +112,15 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
   }, [date]);
 
   useEffect(() => {
-    if (!htmlContent || !contentRef.current) return;
+    // Clear content immediately when htmlContent becomes empty
+    if (!htmlContent) {
+      if (contentRef.current) {
+        contentRef.current.innerHTML = "";
+      }
+      return;
+    }
+    
+    if (!contentRef.current) return;
 
     // Cleanup previous
     bodyScriptNodesRef.current.forEach((n) => n.remove());
@@ -128,11 +139,6 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
 
       // Inject body content
       contentRef.current!.innerHTML = doc.body.innerHTML;
-      
-      // Enable pointer events for all interactive elements
-      contentRef.current!.querySelectorAll('button, a, input, select, textarea, [onclick]').forEach(el => {
-        (el as HTMLElement).style.pointerEvents = 'auto';
-      });
 
       // Execute body scripts (inline and external) in order, then trigger DOMContentLoaded
       const bodyScripts = Array.from(doc.body.querySelectorAll("script"));
@@ -152,6 +158,8 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
       }
       try {
         document.dispatchEvent(new Event("DOMContentLoaded"));
+        // Some uploaded pages reveal content on window "load" only
+        window.dispatchEvent(new Event("load"));
       } catch (e) {
         // no-op
       }
@@ -248,24 +256,23 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
   }
 
   return (
-    <div className="w-full h-full overflow-auto relative scrollbar-hide">
+    <div className="w-full h-full overflow-auto hide-scrollbar relative">
       <div 
         className="relative"
         style={{ 
           transform: `scale(${zoom / 100})`, 
           transformOrigin: 'top left', 
-          width: `${100 / (zoom / 100)}%`, 
-          height: `${100 / (zoom / 100)}%`,
-          pointerEvents: 'auto'
+          width: `${100 / (zoom / 100)}%`,
+          height: `${100 / (zoom / 100)}%`
         }}
       >
         <div ref={contentRef} className="w-full h-full" />
         <canvas
           ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full"
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
           style={{ 
             pointerEvents: drawingTool ? 'auto' : 'none',
-            zIndex: drawingTool ? 10 : 1
+            zIndex: drawingTool ? 10 : -1
           }}
         />
       </div>

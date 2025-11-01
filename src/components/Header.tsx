@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { useState } from "react";
 interface HeaderProps {
   date: Date;
   onDateChange: (date: Date) => void;
@@ -22,15 +21,6 @@ const Header = ({
   isVisible,
   setIsVisible
 }: HeaderProps) => {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  const handleDateSelect = (newDate: Date | undefined) => {
-    if (newDate) {
-      onDateChange(newDate);
-      setIsCalendarOpen(false);
-    }
-  };
-
   return <>
       <header className={`fixed top-0 left-0 right-0 z-50 bg-background border-b border-border transition-all duration-300 overflow-hidden ${isVisible ? 'h-16' : 'h-0 opacity-0'}`}>
         <div className="flex items-center justify-between h-16 md:px-6 max-w-full px-[19px]">
@@ -57,7 +47,7 @@ const Header = ({
             </div>
 
             {/* Date Picker */}
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2 h-10 px-3">
                   <CalendarIcon className="h-4 w-4" />
@@ -70,7 +60,7 @@ const Header = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-                <Calendar mode="single" selected={date} onSelect={handleDateSelect} initialFocus />
+                <Calendar mode="single" selected={date} onSelect={newDate => newDate && onDateChange(newDate)} initialFocus />
               </PopoverContent>
             </Popover>
           </div>
