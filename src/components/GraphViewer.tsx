@@ -80,8 +80,6 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
 
   useEffect(() => {
     const loadGraph = async () => {
-      // Reset content first to force re-render
-      setHtmlContent("");
       setLoading(true);
       setError(null);
 
@@ -95,12 +93,15 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
         if (dbError) throw dbError;
 
         if (data && data.html_content) {
+          console.log("Content loaded for date:", date, "Length:", data.html_content.length);
           setHtmlContent(data.html_content);
         } else {
+          console.log("No content found for date:", date);
           setError("No content found for this date");
           setHtmlContent("");
         }
       } catch (err: any) {
+        console.error("Error loading content:", err);
         setError(err.message || "Failed to load content");
         setHtmlContent("");
       } finally {
@@ -112,15 +113,16 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
   }, [date]);
 
   useEffect(() => {
+    if (!contentRef.current) return;
+
     // Clear content immediately when htmlContent becomes empty
     if (!htmlContent) {
-      if (contentRef.current) {
-        contentRef.current.innerHTML = "";
-      }
+      console.log("Clearing content (empty htmlContent)");
+      contentRef.current.innerHTML = "";
       return;
     }
-    
-    if (!contentRef.current) return;
+
+    console.log("Starting content injection, htmlContent length:", htmlContent.length);
 
     // Cleanup previous
     bodyScriptNodesRef.current.forEach((n) => n.remove());
@@ -134,40 +136,56 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
+    let isCancelled = false;
+
     const run = async () => {
-      await ensureExternalAssets(doc, headNodesRef.current);
-
-      // Inject body content
-      contentRef.current!.innerHTML = doc.body.innerHTML;
-
-      // Execute body scripts (inline and external) in order, then trigger DOMContentLoaded
-      const bodyScripts = Array.from(doc.body.querySelectorAll("script"));
-      for (const s of bodyScripts) {
-        const ns = document.createElement("script");
-        Array.from(s.attributes).forEach((attr) => ns.setAttribute(attr.name, attr.value));
-        if (ns.hasAttribute("src")) {
-          await new Promise((resolve) => {
-            ns.addEventListener("load", resolve, { once: true });
-            contentRef.current!.appendChild(ns);
-          });
-        } else {
-          ns.text = s.text || s.textContent || "";
-          contentRef.current!.appendChild(ns);
-        }
-        bodyScriptNodesRef.current.push(ns);
-      }
       try {
-        document.dispatchEvent(new Event("DOMContentLoaded"));
-        // Some uploaded pages reveal content on window "load" only
-        window.dispatchEvent(new Event("load"));
-      } catch (e) {
-        // no-op
+        await ensureExternalAssets(doc, headNodesRef.current);
+
+        if (isCancelled || !contentRef.current) return;
+
+        // Inject body content
+        contentRef.current.innerHTML = doc.body.innerHTML;
+        console.log("Body content injected successfully");
+
+        // Execute body scripts (inline and external) in order, then trigger DOMContentLoaded
+        const bodyScripts = Array.from(doc.body.querySelectorAll("script"));
+        for (const s of bodyScripts) {
+          if (isCancelled) break;
+          
+          const ns = document.createElement("script");
+          Array.from(s.attributes).forEach((attr) => ns.setAttribute(attr.name, attr.value));
+          if (ns.hasAttribute("src")) {
+            await new Promise((resolve) => {
+              ns.addEventListener("load", resolve, { once: true });
+              ns.addEventListener("error", resolve, { once: true });
+              contentRef.current!.appendChild(ns);
+            });
+          } else {
+            ns.text = s.text || s.textContent || "";
+            contentRef.current!.appendChild(ns);
+          }
+          bodyScriptNodesRef.current.push(ns);
+        }
+        
+        if (!isCancelled) {
+          try {
+            document.dispatchEvent(new Event("DOMContentLoaded"));
+            window.dispatchEvent(new Event("load"));
+          } catch (e) {
+            console.error("Error dispatching events:", e);
+          }
+        }
+      } catch (error) {
+        console.error("Error in content injection:", error);
       }
     };
 
     run();
 
     return () => {
+      isCancelled = true;
+      console.log("Cleaning up content injection");
       if (contentRef.current) contentRef.current.innerHTML = "";
       headNodesRef.current.forEach((n) => n.parentNode && n.parentNode.removeChild(n));
       headNodesRef.current = [];
@@ -257,24 +275,24 @@ const GraphViewer = ({ date, zoom, drawingTool }: GraphViewerProps) => {
 
   return (
     <div className="w-full h-full overflow-auto hide-scrollbar relative">
-      <div className="relative">
-        <div
-          className="relative"
-          style={{
-            // Use CSS zoom to avoid creating a containing block that breaks fixed-position overlays
-            zoom: zoom / 100,
+      <div 
+        className="relative min-h-full"
+        style={{ 
+          transform: `scale(${zoom / 100})`, 
+          transformOrigin: 'top left', 
+          width: `${100 / (zoom / 100)}%`,
+          minHeight: `${100 / (zoom / 100)}%`
+        }}
+      >
+        <div ref={contentRef} className="w-full min-h-full" />
+        <canvas
+          ref={canvasRef}
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          style={{ 
+            pointerEvents: drawingTool ? 'auto' : 'none',
+            zIndex: drawingTool ? 10 : -1
           }}
-        >
-          <div ref={contentRef} className="w-full h-full" />
-          <canvas
-            ref={canvasRef}
-            className="absolute top-0 left-0 w-full h-full pointer-events-none"
-            style={{
-              pointerEvents: drawingTool ? 'auto' : 'none',
-              zIndex: drawingTool ? 10 : -1,
-            }}
-          />
-        </div>
+        />
       </div>
     </div>
   );
