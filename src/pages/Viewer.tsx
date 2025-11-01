@@ -1,40 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import Header from "@/components/Header";
 import GraphViewer from "@/components/GraphViewer";
 
 const Viewer = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  // Initialize date from localStorage or use current date
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const savedDate = localStorage.getItem('selectedDate');
+    if (savedDate) {
+      const parsedDate = new Date(savedDate);
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+    return new Date();
+  });
+  
   const [zoom, setZoom] = useState(100);
   const [drawingTool, setDrawingTool] = useState<"pencil" | "highlighter" | "eraser" | null>(null);
-  const [headerVisible, setHeaderVisible] = useState(true);
 
-  const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev + 10, 200));
-  };
-
-  const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 10, 50));
-  };
+  // Persist selected date to localStorage
+  useEffect(() => {
+    localStorage.setItem('selectedDate', selectedDate.toISOString());
+  }, [selectedDate]);
 
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
+  const handleDateChange = (newDate: Date) => {
+    // Save the new date to localStorage
+    localStorage.setItem('selectedDate', newDate.toISOString());
+    // Refresh the page to load the new content
+    window.location.reload();
+  };
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <Header
-        date={selectedDate}
-        onDateChange={setSelectedDate}
-        zoom={zoom}
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        isVisible={headerVisible}
-        setIsVisible={setHeaderVisible}
-      />
-      <main className={`flex-1 overflow-hidden transition-all duration-300 ${headerVisible ? 'mt-16' : 'mt-6'}`}>
+      <main className="flex-1 overflow-hidden">
         <GraphViewer
           date={formattedDate}
           zoom={zoom}
+          onZoomChange={setZoom}
           drawingTool={drawingTool}
+          onDateChange={handleDateChange}
         />
       </main>
     </div>
