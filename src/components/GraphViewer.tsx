@@ -526,7 +526,7 @@ const GraphViewer = ({
       )}
 
       {/* Content Area */}
-      <div className={`flex-1 relative ${isMobile ? 'overflow-hidden' : 'overflow-auto sm:hide-scrollbar'}`}>
+      <div className={`flex-1 relative ${isMobile ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto sm:hide-scrollbar'}`}>
         <div className="relative" style={{
         transform: `scale(${zoom / 100})`,
         transformOrigin: 'top left',
