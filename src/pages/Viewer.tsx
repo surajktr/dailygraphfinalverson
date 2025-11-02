@@ -18,10 +18,10 @@ const Viewer = () => {
   const [zoom, setZoom] = useState(100);
   const [drawingTool, setDrawingTool] = useState<"pencil" | "highlighter" | "eraser" | null>(null);
 
-  // Persist selected date to localStorage
+  // Clear localStorage once component mounts successfully
   useEffect(() => {
-    localStorage.setItem('selectedDate', selectedDate.toISOString());
-  }, [selectedDate]);
+    localStorage.removeItem('selectedDate');
+  }, []);
 
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
