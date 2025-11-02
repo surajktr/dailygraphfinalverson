@@ -4,7 +4,9 @@ import GraphViewer from "@/components/GraphViewer";
 
 const Viewer = () => {
   // Detect mobile device
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const [isMobile] = useState(() => 
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  );
   
   // Initialize date from localStorage or use current date
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -45,6 +47,7 @@ const Viewer = () => {
           drawingTool={drawingTool}
           onDateChange={handleDateChange}
           onLoadSuccess={handleLoadSuccess}
+          isMobile={isMobile}
         />
       </main>
     </div>
