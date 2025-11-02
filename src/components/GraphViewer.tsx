@@ -345,15 +345,85 @@ const GraphViewer = ({
         </div>
       </div>;
   }
+  
+  const currentDate = new Date(date);
+  
   if (error) {
-    return <div className="flex items-center justify-center h-full">
+    return <div className="w-full h-full flex flex-col relative">
+      {/* Header with branding, zoom controls, and date picker */}
+      {!headerHidden && (
+        <div className="flex items-center justify-between gap-2 p-2 sm:p-3 bg-background border-b border-border">
+          <h1 className="text-base sm:text-xl font-bold text-primary">Dailygraph</h1>
+          
+          {/* Zoom controls and calendar */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onZoomChange(Math.max(50, zoom - 10))}
+              className="h-7 w-7 sm:h-9 sm:w-9"
+            >
+              <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+            <span className="text-xs sm:text-sm font-medium min-w-[2.5rem] sm:min-w-[3rem] text-center">
+              {zoom}%
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onZoomChange(Math.min(200, zoom + 10))}
+              className="h-7 w-7 sm:h-9 sm:w-9"
+            >
+              <ZoomIn className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-1 sm:gap-2 h-7 sm:h-9 px-2 sm:px-3">
+                  <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">
+                    {format(currentDate, "dd MMM yyyy")}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar mode="single" selected={currentDate} onSelect={newDate => newDate && onDateChange(newDate)} initialFocus className="pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setHeaderHidden(true)}
+              className="h-7 w-7 sm:h-9 sm:w-9"
+            >
+              <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {/* Show header button when hidden */}
+      {headerHidden && (
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setHeaderHidden(false)}
+          className="absolute top-2 right-2 z-20 h-7 w-7 sm:h-9 sm:w-9"
+        >
+          <ChevronUp className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+      )}
+      
+      <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-2">
           <p className="text-lg font-medium text-foreground">{error}</p>
           <p className="text-sm text-muted-foreground">Try selecting a different date</p>
         </div>
-      </div>;
+      </div>
+    </div>;
   }
-  const currentDate = new Date(date);
+  
   return <div className="w-full h-full flex flex-col relative">
       {/* Header with branding, zoom controls, and date picker */}
       {!headerHidden && (
