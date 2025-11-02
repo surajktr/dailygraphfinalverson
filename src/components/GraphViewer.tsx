@@ -72,15 +72,13 @@ interface GraphViewerProps {
   onZoomChange: (zoom: number) => void;
   drawingTool: "pencil" | "highlighter" | "eraser" | null;
   onDateChange: (date: Date) => void;
-  onLoadSuccess?: () => void;
 }
 const GraphViewer = ({
   date,
   zoom,
   onZoomChange,
   drawingTool,
-  onDateChange,
-  onLoadSuccess
+  onDateChange
 }: GraphViewerProps) => {
   const [htmlContent, setHtmlContent] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -108,7 +106,6 @@ const GraphViewer = ({
         if (dbError) throw dbError;
         if (data && data.html_content) {
           setHtmlContent(data.html_content);
-          onLoadSuccess?.();
         } else {
           setError("No content found for this date");
           setHtmlContent("");
@@ -390,7 +387,22 @@ const GraphViewer = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-                <Calendar mode="single" selected={currentDate} onSelect={newDate => newDate && onDateChange(newDate)} initialFocus className="pointer-events-auto" />
+                <Calendar
+                  mode="single"
+                  selected={currentDate}
+                  onSelect={newDate => newDate && onDateChange(newDate)}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const earliest = new Date(today);
+                    earliest.setDate(today.getDate() - 6); // last 7 days inclusive
+                    const checkDate = new Date(date);
+                    checkDate.setHours(0, 0, 0, 0);
+                    return checkDate > today || checkDate < earliest;
+                  }}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
               </PopoverContent>
             </Popover>
             
@@ -465,7 +477,22 @@ const GraphViewer = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-                <Calendar mode="single" selected={currentDate} onSelect={newDate => newDate && onDateChange(newDate)} initialFocus className="pointer-events-auto" />
+                <Calendar
+                  mode="single"
+                  selected={currentDate}
+                  onSelect={newDate => newDate && onDateChange(newDate)}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const earliest = new Date(today);
+                    earliest.setDate(today.getDate() - 6); // last 7 days inclusive
+                    const checkDate = new Date(date);
+                    checkDate.setHours(0, 0, 0, 0);
+                    return checkDate > today || checkDate < earliest;
+                  }}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
               </PopoverContent>
             </Popover>
             
