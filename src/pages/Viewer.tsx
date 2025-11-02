@@ -3,6 +3,9 @@ import { format } from "date-fns";
 import GraphViewer from "@/components/GraphViewer";
 
 const Viewer = () => {
+  // Detect mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
   // Initialize date from localStorage or use current date
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const savedDate = localStorage.getItem('selectedDate');
@@ -15,7 +18,7 @@ const Viewer = () => {
     return new Date();
   });
   
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(isMobile ? 95 : 100);
   const [drawingTool, setDrawingTool] = useState<"pencil" | "highlighter" | "eraser" | null>(null);
 
   const handleLoadSuccess = () => {

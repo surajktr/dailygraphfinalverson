@@ -72,13 +72,15 @@ interface GraphViewerProps {
   onZoomChange: (zoom: number) => void;
   drawingTool: "pencil" | "highlighter" | "eraser" | null;
   onDateChange: (date: Date) => void;
+  onLoadSuccess?: () => void;
 }
 const GraphViewer = ({
   date,
   zoom,
   onZoomChange,
   drawingTool,
-  onDateChange
+  onDateChange,
+  onLoadSuccess
 }: GraphViewerProps) => {
   const [htmlContent, setHtmlContent] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,7 @@ const GraphViewer = ({
         if (dbError) throw dbError;
         if (data && data.html_content) {
           setHtmlContent(data.html_content);
+          onLoadSuccess?.();
         } else {
           setError("No content found for this date");
           setHtmlContent("");
@@ -366,7 +369,7 @@ const GraphViewer = ({
               <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <span className="text-xs sm:text-sm font-medium min-w-[2.5rem] sm:min-w-[3rem] text-center">
-              {zoom}%
+              {zoom === 95 ? 100 : zoom}%
             </span>
             <Button
               variant="outline"
@@ -456,7 +459,7 @@ const GraphViewer = ({
               <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <span className="text-xs sm:text-sm font-medium min-w-[2.5rem] sm:min-w-[3rem] text-center">
-              {zoom}%
+              {zoom === 95 ? 100 : zoom}%
             </span>
             <Button
               variant="outline"
@@ -521,7 +524,7 @@ const GraphViewer = ({
       )}
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto hide-scrollbar relative">
+      <div className="flex-1 overflow-auto relative sm:hide-scrollbar">
         <div className="relative" style={{
         transform: `scale(${zoom / 100})`,
         transformOrigin: 'top left',
