@@ -18,10 +18,10 @@ const Viewer = () => {
   const [zoom, setZoom] = useState(100);
   const [drawingTool, setDrawingTool] = useState<"pencil" | "highlighter" | "eraser" | null>(null);
 
-  // Clear localStorage once component mounts successfully
-  useEffect(() => {
+  const handleLoadSuccess = () => {
+    // Clear localStorage after content is successfully loaded
     localStorage.removeItem('selectedDate');
-  }, []);
+  };
 
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
@@ -41,6 +41,7 @@ const Viewer = () => {
           onZoomChange={setZoom}
           drawingTool={drawingTool}
           onDateChange={handleDateChange}
+          onLoadSuccess={handleLoadSuccess}
         />
       </main>
     </div>

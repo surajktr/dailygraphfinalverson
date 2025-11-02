@@ -72,13 +72,15 @@ interface GraphViewerProps {
   onZoomChange: (zoom: number) => void;
   drawingTool: "pencil" | "highlighter" | "eraser" | null;
   onDateChange: (date: Date) => void;
+  onLoadSuccess?: () => void;
 }
 const GraphViewer = ({
   date,
   zoom,
   onZoomChange,
   drawingTool,
-  onDateChange
+  onDateChange,
+  onLoadSuccess
 }: GraphViewerProps) => {
   const [htmlContent, setHtmlContent] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,7 @@ const GraphViewer = ({
         if (dbError) throw dbError;
         if (data && data.html_content) {
           setHtmlContent(data.html_content);
+          onLoadSuccess?.();
         } else {
           setError("No content found for this date");
           setHtmlContent("");
