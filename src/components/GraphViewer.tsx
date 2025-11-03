@@ -243,6 +243,77 @@ const GraphViewer = ({
       } catch (e) {
         // no-op
       }
+
+      // WebView popover fix: Make all interactive elements work properly
+      setTimeout(() => {
+        if (!contentRef.current) return;
+        
+        // Fix all clickable elements to work in WebView
+        contentRef.current.querySelectorAll('a, button, input, select, textarea, [onclick], [role="button"]').forEach((el: Element) => {
+          if (el instanceof HTMLElement) {
+            // Ensure touch works
+            el.style.touchAction = 'manipulation';
+            el.style.cursor = 'pointer';
+            
+            // Fix onclick attributes by converting to event listeners
+            const onclickAttr = el.getAttribute('onclick');
+            if (onclickAttr && !el.onclick) {
+              el.addEventListener('click', function(e) {
+                try {
+                  eval(onclickAttr);
+                } catch (err) {
+                  console.warn('onclick eval failed:', err);
+                }
+              });
+            }
+
+            // For links, ensure they open in same window
+            if (el.tagName === 'A') {
+              (el as HTMLAnchorElement).target = '_self';
+            }
+          }
+        });
+
+        // Monitor for dynamically added popovers/modals and move them outside scaled container
+        const popoverObserver = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node instanceof HTMLElement) {
+                // Check if it's a popover/modal/dropdown
+                const isPopover = node.hasAttribute('role') && 
+                  ['dialog', 'menu', 'listbox', 'tooltip'].includes(node.getAttribute('role') || '');
+                const isPopoverClass = node.classList.contains('popover') || 
+                  node.classList.contains('dropdown') ||
+                  node.classList.contains('modal') ||
+                  node.querySelector('[role="dialog"], [role="menu"]');
+                
+                if ((isPopover || isPopoverClass) && node.hasAttribute('data-gv-external')) {
+                  // Move to body root (outside scaled container)
+                  document.body.appendChild(node);
+                  
+                  // Apply zoom adjustment
+                  const computedStyle = window.getComputedStyle(node);
+                  if (computedStyle.position === 'fixed' || computedStyle.position === 'absolute') {
+                    node.style.transform = `scale(${zoom / 100})`;
+                    node.style.transformOrigin = 'top left';
+                    node.style.zIndex = '9999';
+                  }
+                  
+                  // Ensure it's touchable
+                  node.style.touchAction = 'manipulation';
+                  node.style.pointerEvents = 'auto';
+                }
+              }
+            });
+          });
+        });
+
+        // Observe both the content and the body for popovers
+        popoverObserver.observe(document.body, { childList: true, subtree: true });
+        if (contentRef.current) {
+          popoverObserver.observe(contentRef.current, { childList: true, subtree: true });
+        }
+      }, 300);
       // Stop capturing nodes after injection completes
       injectionActiveRef.current = false;
       if (bodyObserverRef.current) {

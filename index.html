@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
     <title>Dailygraph</title>
     <meta name="description" content="📰 News Articles
 🧠 Difficult Words
@@ -46,5 +50,38 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- WebView Compatibility Script -->
+    <script>
+      // Enable fast clicks and ensure onclick attributes work in WebView
+      document.addEventListener('DOMContentLoaded', function() {
+        // Disable 300ms tap delay in WebView
+        if ('ontouchstart' in window) {
+          document.body.style.touchAction = 'manipulation';
+        }
+        
+        // Global onclick handler for dynamically added elements
+        document.addEventListener('click', function(e) {
+          let target = e.target;
+          // Bubble up to find element with onclick
+          while (target && target !== document) {
+            if (target.hasAttribute && target.hasAttribute('onclick')) {
+              const onclickCode = target.getAttribute('onclick');
+              if (onclickCode && !target.onclick) {
+                try {
+                  // Create function from onclick string and execute
+                  const fn = new Function('event', onclickCode);
+                  fn.call(target, e);
+                  break;
+                } catch(err) {
+                  console.warn('onclick execution failed:', err);
+                }
+              }
+            }
+            target = target.parentElement;
+          }
+        }, true); // Use capture phase to catch events early
+      });
+    </script>
   </body>
 </html>
