@@ -205,59 +205,6 @@ const GraphViewer = ({
       // Inject body content
       if (!contentRef.current) return;
       contentRef.current.innerHTML = doc.body.innerHTML;
-      
-      // Make all links and buttons WebView-compatible
-      setTimeout(() => {
-        if (!contentRef.current) return;
-        
-        // Fix all links to open in same window for WebView
-        contentRef.current.querySelectorAll('a').forEach((link: HTMLAnchorElement) => {
-          link.setAttribute('target', '_self');
-          link.style.touchAction = 'manipulation';
-        });
-        
-        // Ensure all interactive elements are touch-enabled
-        contentRef.current.querySelectorAll('button, [onclick], [role="button"]').forEach((el: HTMLElement) => {
-          el.style.touchAction = 'manipulation';
-          el.style.cursor = 'pointer';
-          
-          // Add touch event listeners for WebView compatibility
-          if (!el.onclick && el.hasAttribute('onclick')) {
-            const onclickAttr = el.getAttribute('onclick');
-            if (onclickAttr) {
-              el.addEventListener('click', new Function(onclickAttr) as EventListener);
-            }
-          }
-        });
-        
-        // Enable all forms for WebView
-        contentRef.current.querySelectorAll('form').forEach((form: HTMLFormElement) => {
-          form.style.touchAction = 'manipulation';
-        });
-        
-        // Fix any iframes
-        contentRef.current.querySelectorAll('iframe').forEach((iframe: HTMLIFrameElement) => {
-          iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
-        });
-        
-        // Fix popovers/modals to work with transform scale - move them outside scaled container
-        const checkForModals = setInterval(() => {
-          // Look for common modal/popover patterns that are rendered outside content
-          document.querySelectorAll('[role="dialog"], [role="menu"], .modal, .popover, [data-radix-popper-content-wrapper]').forEach((modal: Element) => {
-            if (modal instanceof HTMLElement && modal.hasAttribute('data-gv-external')) {
-              // Adjust positioning to account for zoom
-              const computedStyle = window.getComputedStyle(modal);
-              if (computedStyle.position === 'fixed' || computedStyle.position === 'absolute') {
-                modal.style.transform = `scale(${zoom / 100})`;
-                modal.style.transformOrigin = 'top left';
-              }
-            }
-          });
-        }, 100);
-        
-        // Clear interval after 5 seconds
-        setTimeout(() => clearInterval(checkForModals), 5000);
-      }, 100);
 
       // Execute body scripts (inline and external) in order, then trigger DOMContentLoaded
       const bodyScripts = Array.from(doc.body.querySelectorAll("script"));
@@ -589,15 +536,14 @@ const GraphViewer = ({
       )}
 
       {/* Content Area */}
-      <div className={`flex-1 relative ${isMobile ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto sm:hide-scrollbar'}`} style={{ isolation: 'auto' }}>
+      <div className={`flex-1 relative ${isMobile ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto sm:hide-scrollbar'}`}>
         <div className="relative" style={{
         transform: `scale(${zoom / 100})`,
         transformOrigin: 'top left',
         width: `${100 / (zoom / 100)}%`,
-        height: `${100 / (zoom / 100)}%`,
-        willChange: 'transform'
+        height: `${100 / (zoom / 100)}%`
       }}>
-          <div ref={contentRef} className="w-full h-full" style={{ isolation: 'auto' }} />
+          <div ref={contentRef} className="w-full h-full" />
           <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" style={{
           pointerEvents: drawingTool ? 'auto' : 'none',
           zIndex: drawingTool ? 10 : -10,

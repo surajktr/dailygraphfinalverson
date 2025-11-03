@@ -2,14 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    
-    <!-- WebView Compatibility -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="format-detection" content="telephone=no" />
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dailygraph</title>
     <meta name="description" content="📰 News Articles
 🧠 Difficult Words
@@ -52,32 +45,6 @@
 
   <body>
     <div id="root"></div>
-    
-    <!-- WebView Compatibility Script -->
-    <script>
-      // Ensure touch events work in WebView
-      document.addEventListener('DOMContentLoaded', function() {
-        // Enable fast click for WebView
-        if ('ontouchstart' in window) {
-          document.body.style.touchAction = 'manipulation';
-        }
-        
-        // Fix for WebView event delegation
-        document.addEventListener('click', function(e) {
-          if (e.target && e.target.hasAttribute && e.target.hasAttribute('onclick')) {
-            const onclickCode = e.target.getAttribute('onclick');
-            if (onclickCode && !e.target.onclick) {
-              try {
-                eval(onclickCode);
-              } catch(err) {
-                console.warn('onclick eval failed:', err);
-              }
-            }
-          }
-        }, true);
-      });
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
