@@ -91,4 +91,19 @@ All colors MUST be HSL.
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* WebView popover/modal fixes */
+  [role="dialog"],
+  [role="menu"],
+  [data-radix-popper-content-wrapper],
+  [data-radix-portal] {
+    z-index: 9999 !important;
+    isolation: isolate;
+  }
+
+  /* Ensure popovers are visible and touchable in WebView */
+  [data-gv-external] {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
 }

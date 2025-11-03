@@ -239,6 +239,24 @@ const GraphViewer = ({
         contentRef.current.querySelectorAll('iframe').forEach((iframe: HTMLIFrameElement) => {
           iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
         });
+        
+        // Fix popovers/modals to work with transform scale - move them outside scaled container
+        const checkForModals = setInterval(() => {
+          // Look for common modal/popover patterns that are rendered outside content
+          document.querySelectorAll('[role="dialog"], [role="menu"], .modal, .popover, [data-radix-popper-content-wrapper]').forEach((modal: Element) => {
+            if (modal instanceof HTMLElement && modal.hasAttribute('data-gv-external')) {
+              // Adjust positioning to account for zoom
+              const computedStyle = window.getComputedStyle(modal);
+              if (computedStyle.position === 'fixed' || computedStyle.position === 'absolute') {
+                modal.style.transform = `scale(${zoom / 100})`;
+                modal.style.transformOrigin = 'top left';
+              }
+            }
+          });
+        }, 100);
+        
+        // Clear interval after 5 seconds
+        setTimeout(() => clearInterval(checkForModals), 5000);
       }, 100);
 
       // Execute body scripts (inline and external) in order, then trigger DOMContentLoaded
@@ -571,14 +589,15 @@ const GraphViewer = ({
       )}
 
       {/* Content Area */}
-      <div className={`flex-1 relative ${isMobile ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto sm:hide-scrollbar'}`}>
+      <div className={`flex-1 relative ${isMobile ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto sm:hide-scrollbar'}`} style={{ isolation: 'auto' }}>
         <div className="relative" style={{
         transform: `scale(${zoom / 100})`,
         transformOrigin: 'top left',
         width: `${100 / (zoom / 100)}%`,
-        height: `${100 / (zoom / 100)}%`
+        height: `${100 / (zoom / 100)}%`,
+        willChange: 'transform'
       }}>
-          <div ref={contentRef} className="w-full h-full" />
+          <div ref={contentRef} className="w-full h-full" style={{ isolation: 'auto' }} />
           <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" style={{
           pointerEvents: drawingTool ? 'auto' : 'none',
           zIndex: drawingTool ? 10 : -10,
