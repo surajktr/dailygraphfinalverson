@@ -205,6 +205,41 @@ const GraphViewer = ({
       // Inject body content
       if (!contentRef.current) return;
       contentRef.current.innerHTML = doc.body.innerHTML;
+      
+      // Make all links and buttons WebView-compatible
+      setTimeout(() => {
+        if (!contentRef.current) return;
+        
+        // Fix all links to open in same window for WebView
+        contentRef.current.querySelectorAll('a').forEach((link: HTMLAnchorElement) => {
+          link.setAttribute('target', '_self');
+          link.style.touchAction = 'manipulation';
+        });
+        
+        // Ensure all interactive elements are touch-enabled
+        contentRef.current.querySelectorAll('button, [onclick], [role="button"]').forEach((el: HTMLElement) => {
+          el.style.touchAction = 'manipulation';
+          el.style.cursor = 'pointer';
+          
+          // Add touch event listeners for WebView compatibility
+          if (!el.onclick && el.hasAttribute('onclick')) {
+            const onclickAttr = el.getAttribute('onclick');
+            if (onclickAttr) {
+              el.addEventListener('click', new Function(onclickAttr) as EventListener);
+            }
+          }
+        });
+        
+        // Enable all forms for WebView
+        contentRef.current.querySelectorAll('form').forEach((form: HTMLFormElement) => {
+          form.style.touchAction = 'manipulation';
+        });
+        
+        // Fix any iframes
+        contentRef.current.querySelectorAll('iframe').forEach((iframe: HTMLIFrameElement) => {
+          iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
+        });
+      }, 100);
 
       // Execute body scripts (inline and external) in order, then trigger DOMContentLoaded
       const bodyScripts = Array.from(doc.body.querySelectorAll("script"));
