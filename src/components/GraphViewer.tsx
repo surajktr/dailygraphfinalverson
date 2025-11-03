@@ -216,6 +216,9 @@ const GraphViewer = ({
             ns.addEventListener("load", resolve, {
               once: true
             });
+            ns.addEventListener("error", resolve, {
+              once: true
+            });
             if (!contentRef.current) return;
             contentRef.current.appendChild(ns);
           });
@@ -223,13 +226,20 @@ const GraphViewer = ({
           ns.text = s.text || s.textContent || "";
           if (!contentRef.current) return;
           contentRef.current.appendChild(ns);
+          // Allow inline scripts time to execute in WebView
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
         bodyScriptNodesRef.current.push(ns);
       }
+      
+      // Give scripts time to initialize in WebView environment
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
       try {
-        document.dispatchEvent(new Event("DOMContentLoaded"));
-        // Some uploaded pages reveal content on window "load" only
-        window.dispatchEvent(new Event("load"));
+        document.dispatchEvent(new Event("DOMContentLoaded", { bubbles: true }));
+        window.dispatchEvent(new Event("load", { bubbles: true }));
+        // Trigger additional events for WebView compatibility
+        window.dispatchEvent(new Event("pageshow", { bubbles: true }));
       } catch (e) {
         // no-op
       }
