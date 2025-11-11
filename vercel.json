@@ -1,0 +1,40 @@
+{
+  "redirects": [
+    {
+      "source": "/india/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/hindi/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/english/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/world/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/Editorial/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/details/:path*",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
