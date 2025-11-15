@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, LogOut, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import SEO from "@/components/SEO";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -108,7 +109,13 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <>
+      <SEO 
+        title="Admin Panel | Dailygraph"
+        description="Dailygraph admin panel for content management."
+        noIndex={true}
+      />
+      <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-primary">Admin Panel</h1>
@@ -201,6 +208,7 @@ const Admin = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

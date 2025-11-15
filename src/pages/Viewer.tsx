@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import GraphViewer from "@/components/GraphViewer";
+import SEO from "@/components/SEO";
 
 const Viewer = () => {
   // Detect mobile device
@@ -38,19 +39,22 @@ const Viewer = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <main className="flex-1 overflow-hidden">
-        <GraphViewer
-          date={formattedDate}
-          zoom={zoom}
-          onZoomChange={setZoom}
-          drawingTool={drawingTool}
-          onDateChange={handleDateChange}
-          onLoadSuccess={handleLoadSuccess}
-          isMobile={isMobile}
-        />
-      </main>
-    </div>
+    <>
+      <SEO />
+      <div className="h-screen flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-hidden">
+          <GraphViewer
+            date={formattedDate}
+            zoom={zoom}
+            onZoomChange={setZoom}
+            drawingTool={drawingTool}
+            onDateChange={handleDateChange}
+            onLoadSuccess={handleLoadSuccess}
+            isMobile={isMobile}
+          />
+        </main>
+      </div>
+    </>
   );
 };
 
