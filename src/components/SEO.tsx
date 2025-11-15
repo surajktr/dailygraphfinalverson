@@ -9,7 +9,7 @@ interface SEOProps {
   ogImage?: string;
   ogUrl?: string;
   noIndex?: boolean;
-  schema?: object;
+  schema?: object | object[]; // Support single schema or array of schemas
 }
 
 const defaultImage = "https://storage.googleapis.com/gpt-engineer-file-uploads/UzSD8RN0vxV8yG4nsGmtjwj9YJC3/uploads/1761919607072-Gemini_Generated_Image_ozubhhozubhhozub.png";
@@ -117,9 +117,17 @@ const SEO = ({
       
       {/* Custom Schema if provided */}
       {schema && (
-        <script type="application/ld+json">
-          {JSON.stringify(schema)}
-        </script>
+        Array.isArray(schema) ? (
+          schema.map((s, index) => (
+            <script key={index} type="application/ld+json">
+              {JSON.stringify(s)}
+            </script>
+          ))
+        ) : (
+          <script type="application/ld+json">
+            {JSON.stringify(schema)}
+          </script>
+        )
       )}
     </Helmet>
   );

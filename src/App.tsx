@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import Viewer from "./pages/Viewer";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
+import Article from "./pages/Article";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,8 @@ const App = () => (
             <Route path="/" element={<Viewer />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/auth" element={<Auth />} />
+            {/* Dynamic article route - must be before catch-all */}
+            <Route path="/:slug" element={<Article />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
