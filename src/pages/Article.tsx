@@ -57,6 +57,18 @@ const Article = () => {
         }
 
         setArticle(data as DailyContent);
+        
+        // Scroll to specific article if hash is present
+        setTimeout(() => {
+          const hash = window.location.hash;
+          if (hash) {
+            const articleId = hash.substring(1);
+            const element = document.querySelector(`[data-article-id="${articleId}"]`);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }
+        }, 100);
       } catch (err) {
         console.error("Error loading article:", err);
         setError("Failed to load article");
