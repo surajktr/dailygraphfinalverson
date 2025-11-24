@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
 
 interface Article {
-  id: string;
-  title: string | null;
+  contentId: string;
+  articleId: string;
+  title: string;
   upload_date: string;
 }
 
@@ -32,12 +33,40 @@ const Home = () => {
 
       const { data, error } = await supabase
         .from("daily_content")
-        .select("id, title, upload_date")
+        .select("id, html_content, upload_date")
         .gte("upload_date", formattedDate)
         .order("upload_date", { ascending: false });
 
       if (error) throw error;
-      setArticles(data || []);
+      
+      // Parse HTML content to extract individual articles
+      const extractedArticles: Article[] = [];
+      
+      data?.forEach((content) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content.html_content, 'text/html');
+        
+        // Find all elements with data-article-id
+        const articleElements = doc.querySelectorAll('[data-article-id]');
+        
+        articleElements.forEach((element) => {
+          const articleId = element.getAttribute('data-article-id');
+          // Find the first heading (h1, h2, h3, h4) within this article
+          const heading = element.querySelector('h1, h2, h3, h4');
+          const title = heading?.textContent?.trim() || 'Untitled Article';
+          
+          if (articleId) {
+            extractedArticles.push({
+              contentId: content.id,
+              articleId: articleId,
+              title: title,
+              upload_date: content.upload_date,
+            });
+          }
+        });
+      });
+      
+      setArticles(extractedArticles);
     } catch (error) {
       console.error("Error fetching articles:", error);
     } finally {
@@ -45,8 +74,8 @@ const Home = () => {
     }
   };
 
-  const handleArticleClick = (id: string) => {
-    navigate(`/${id}`);
+  const handleArticleClick = (contentId: string, articleId: string) => {
+    navigate(`/${contentId}#${articleId}`);
   };
 
   // Icon colors for variety
@@ -119,21 +148,21 @@ const Home = () => {
               <div className="space-y-3">
                 {articles.map((article, index) => (
                   <button
-                    key={article.id}
-                    onClick={() => handleArticleClick(article.id)}
+                    key={`${article.contentId}-${article.articleId}`}
+                    onClick={() => handleArticleClick(article.contentId, article.articleId)}
                     className="w-full flex items-start gap-4 p-4 rounded-lg hover:bg-secondary transition-colors text-left"
                   >
                     {/* Icon */}
                     <div className={`flex-shrink-0 w-12 h-12 rounded-lg ${iconColors[index % iconColors.length]} flex items-center justify-center`}>
                       <span className="text-xl font-bold">
-                        {article.title?.charAt(0) || "A"}
+                        {article.title.charAt(0)}
                       </span>
                     </div>
                     
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground mb-1 line-clamp-2">
-                        {article.title || "Untitled Article"}
+                        {article.title}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Published: {format(new Date(article.upload_date), "MMMM dd, yyyy")}
