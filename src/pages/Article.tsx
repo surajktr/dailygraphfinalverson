@@ -8,7 +8,7 @@ import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-type DailyContent = Database['public']['Tables']['daily_graphs']['Row'] & {
+type DailyContent = Database['public']['Tables']['daily_content']['Row'] & {
   slug?: string;
   description?: string | null;
   featured_image?: string | null;
@@ -39,7 +39,7 @@ const Article = () => {
 
         // Try to fetch by slug first, fallback to id
         const { data, error: fetchError } = await supabase
-          .from("daily_graphs")
+          .from("daily_content")
           .select("*")
           .or(`slug.eq.${slug},id.eq.${slug}`)
           .single();
@@ -57,18 +57,6 @@ const Article = () => {
         }
 
         setArticle(data as DailyContent);
-        
-        // Scroll to specific article if hash is present
-        setTimeout(() => {
-          const hash = window.location.hash;
-          if (hash) {
-            const articleId = hash.substring(1);
-            const element = document.querySelector(`[data-article-id="${articleId}"]`);
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }
-        }, 100);
       } catch (err) {
         console.error("Error loading article:", err);
         setError("Failed to load article");

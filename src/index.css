@@ -39,12 +39,6 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     --header-height: 4rem;
-    
-    /* Custom category colors */
-    --vocab-green: 168 76% 42%;
-    --vocab-green-foreground: 0 0% 100%;
-    --current-affairs-orange: 24 95% 53%;
-    --current-affairs-orange-foreground: 0 0% 100%;
   }
 
   .dark {
