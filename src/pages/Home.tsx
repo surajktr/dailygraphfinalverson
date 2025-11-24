@@ -32,7 +32,7 @@ const Home = () => {
       const formattedDate = format(sevenDaysAgo, "yyyy-MM-dd");
 
       const { data, error } = await supabase
-        .from("daily_content")
+        .from("daily_graphs")
         .select("id, html_content, upload_date")
         .gte("upload_date", formattedDate)
         .order("upload_date", { ascending: false });
