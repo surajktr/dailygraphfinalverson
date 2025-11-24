@@ -8,6 +8,7 @@ import Viewer from "./pages/Viewer";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Article from "./pages/Article";
+import Articles from "./pages/Articles";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
