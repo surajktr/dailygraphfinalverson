@@ -57,6 +57,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        vocab: {
+          DEFAULT: "hsl(var(--vocab-green))",
+          foreground: "hsl(var(--vocab-green-foreground))",
+        },
+        "current-affairs": {
+          DEFAULT: "hsl(var(--current-affairs-orange))",
+          foreground: "hsl(var(--current-affairs-orange-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

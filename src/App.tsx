@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import Home from "./pages/Home";
 import Viewer from "./pages/Viewer";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
@@ -20,7 +21,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Viewer />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/viewer" element={<Viewer />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/auth" element={<Auth />} />
             {/* Dynamic article route - must be before catch-all */}
