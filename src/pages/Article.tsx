@@ -8,7 +8,7 @@ import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-type DailyContent = Database['public']['Tables']['daily_content']['Row'] & {
+type DailyContent = Database['public']['Tables']['daily_graphs']['Row'] & {
   slug?: string;
   description?: string | null;
   featured_image?: string | null;
@@ -39,7 +39,7 @@ const Article = () => {
 
         // Try to fetch by slug first, fallback to id
         const { data, error: fetchError } = await supabase
-          .from("daily_content")
+          .from("daily_graphs")
           .select("*")
           .or(`slug.eq.${slug},id.eq.${slug}`)
           .single();
