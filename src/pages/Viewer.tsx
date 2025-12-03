@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import GraphViewer from "@/components/GraphViewer";
+import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 
 const Viewer = () => {
@@ -41,8 +42,8 @@ const Viewer = () => {
   return (
     <>
       <SEO />
-      <div className="h-screen flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-hidden">
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1">
           <GraphViewer
             date={formattedDate}
             zoom={zoom}
@@ -53,6 +54,7 @@ const Viewer = () => {
             isMobile={isMobile}
           />
         </main>
+        <Footer />
       </div>
     </>
   );
