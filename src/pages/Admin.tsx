@@ -92,16 +92,16 @@ const Admin = () => {
           if (error) throw error;
         }
       } else if (type === "current_affairs") {
-        // Current Affairs upload
+        // Current Affairs upload - table needs to be created via migration
         const jsonData = JSON.parse(content);
-        const { data: existing } = await supabase
+        const { data: existing } = await (supabase as any)
           .from("current_affairs")
           .select("id")
           .eq("upload_date", formattedDate)
           .maybeSingle();
 
         if (existing) {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from("current_affairs")
             .update({
               questions: jsonData,
@@ -110,7 +110,7 @@ const Admin = () => {
             .eq("id", existing.id);
           if (error) throw error;
         } else {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from("current_affairs")
             .insert({
               questions: jsonData,
@@ -120,9 +120,9 @@ const Admin = () => {
           if (error) throw error;
         }
       } else if (type === "vocab") {
-        // Vocab upload
+        // Vocab upload - table needs to be created via migration
         const jsonData = JSON.parse(content);
-        const { data: existing } = await supabase
+        const { data: existing } = await (supabase as any)
           .from("vocab_questions")
           .select("id")
           .eq("upload_date", formattedDate)
@@ -137,13 +137,13 @@ const Admin = () => {
         };
 
         if (existing) {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from("vocab_questions")
             .update(vocabData)
             .eq("id", existing.id);
           if (error) throw error;
         } else {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from("vocab_questions")
             .insert({
               ...vocabData,
