@@ -385,13 +385,21 @@ const Admin = () => {
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>Expected JSON format:</p>
                   <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
-{`[{
-  "question_en": "...",
-  "question_hi": "...",
-  "answer": "...",
-  "options": ["..."],
-  "extra_details": "..."
-}]`}
+{`{
+  "title": "Quiz Title",
+  "description": "Description",
+  "questions": [{
+    "id": 1,
+    "question_en": "...",
+    "question_hi": "...",
+    "options": [
+      {"label": "A", "text_en": "...", "text_hi": "..."}
+    ],
+    "answer": "A",
+    "explanation_en": "...",
+    "explanation_hi": "..."
+  }]
+}`}
                   </pre>
                 </div>
               </CardContent>
