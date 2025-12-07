@@ -6,6 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, LogOut, Loader2 } from "lucide-react";
@@ -21,6 +22,8 @@ const Admin = () => {
   const [editorialFile, setEditorialFile] = useState<File | null>(null);
   const [currentAffairsFile, setCurrentAffairsFile] = useState<File | null>(null);
   const [vocabFile, setVocabFile] = useState<File | null>(null);
+  const [currentAffairsJson, setCurrentAffairsJson] = useState<string>("");
+  const [vocabJson, setVocabJson] = useState<string>("");
   const [uploading, setUploading] = useState<ContentType | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: ContentType) => {
@@ -40,11 +43,12 @@ const Admin = () => {
     }
   };
 
-  const handleUpload = async (type: ContentType) => {
+  const handleUpload = async (type: ContentType, useJsonInput: boolean = false) => {
     const file = type === "editorial" ? editorialFile : 
                  type === "current_affairs" ? currentAffairsFile : vocabFile;
+    const jsonInput = type === "current_affairs" ? currentAffairsJson : vocabJson;
     
-    if (!file) {
+    if (!useJsonInput && !file) {
       toast({
         title: "No file selected",
         description: `Please select a ${type === "editorial" ? "HTML" : "JSON"} file to upload`,
@@ -53,10 +57,19 @@ const Admin = () => {
       return;
     }
 
+    if (useJsonInput && !jsonInput.trim()) {
+      toast({
+        title: "No JSON provided",
+        description: "Please paste JSON content to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(type);
 
     try {
-      const content = await file.text();
+      const content = useJsonInput ? jsonInput : await file!.text();
       const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
       const { data: session } = await supabase.auth.getSession();
@@ -159,10 +172,15 @@ const Admin = () => {
         description: `${type === "editorial" ? "Editorial" : type === "current_affairs" ? "Current Affairs" : "Vocab"} uploaded for ${format(selectedDate, "MMMM do, yyyy")}`,
       });
 
-      // Reset file
+      // Reset file and json input
       if (type === "editorial") setEditorialFile(null);
-      else if (type === "current_affairs") setCurrentAffairsFile(null);
-      else if (type === "vocab") setVocabFile(null);
+      else if (type === "current_affairs") {
+        setCurrentAffairsFile(null);
+        setCurrentAffairsJson("");
+      } else if (type === "vocab") {
+        setVocabFile(null);
+        setVocabJson("");
+      }
       
       // Reset file input
       const fileInput = document.getElementById(`${type}-upload`) as HTMLInputElement;
@@ -282,12 +300,13 @@ const Admin = () => {
               <CardHeader>
                 <CardTitle>Upload Current Affairs</CardTitle>
                 <CardDescription>
-                  Upload JSON file with questions for {format(selectedDate, "MMMM do, yyyy")}
+                  Upload JSON file or paste JSON for {format(selectedDate, "MMMM do, yyyy")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* File Upload Option */}
                 <div className="space-y-2">
-                  <Label htmlFor="current_affairs-upload">JSON File</Label>
+                  <Label htmlFor="current_affairs-upload">Option 1: Upload JSON File</Label>
                   <Input
                     id="current_affairs-upload"
                     type="file"
@@ -306,7 +325,7 @@ const Admin = () => {
                 )}
 
                 <Button
-                  onClick={() => handleUpload("current_affairs")}
+                  onClick={() => handleUpload("current_affairs", false)}
                   disabled={!currentAffairsFile || uploading === "current_affairs"}
                   className="w-full"
                 >
@@ -318,7 +337,47 @@ const Admin = () => {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload Current Affairs
+                      Upload from File
+                    </>
+                  )}
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  </div>
+                </div>
+
+                {/* Paste JSON Option */}
+                <div className="space-y-2">
+                  <Label htmlFor="current_affairs-json">Option 2: Paste JSON Code</Label>
+                  <Textarea
+                    id="current_affairs-json"
+                    placeholder="Paste your JSON here..."
+                    value={currentAffairsJson}
+                    onChange={(e) => setCurrentAffairsJson(e.target.value)}
+                    className="min-h-[200px] font-mono text-xs"
+                  />
+                </div>
+
+                <Button
+                  onClick={() => handleUpload("current_affairs", true)}
+                  disabled={!currentAffairsJson.trim() || uploading === "current_affairs"}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  {uploading === "current_affairs" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload from Pasted JSON
                     </>
                   )}
                 </Button>
@@ -345,12 +404,13 @@ const Admin = () => {
               <CardHeader>
                 <CardTitle>Upload Vocab Questions</CardTitle>
                 <CardDescription>
-                  Upload JSON file with vocab questions for {format(selectedDate, "MMMM do, yyyy")}
+                  Upload JSON file or paste JSON for {format(selectedDate, "MMMM do, yyyy")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* File Upload Option */}
                 <div className="space-y-2">
-                  <Label htmlFor="vocab-upload">JSON File</Label>
+                  <Label htmlFor="vocab-upload">Option 1: Upload JSON File</Label>
                   <Input
                     id="vocab-upload"
                     type="file"
@@ -369,7 +429,7 @@ const Admin = () => {
                 )}
 
                 <Button
-                  onClick={() => handleUpload("vocab")}
+                  onClick={() => handleUpload("vocab", false)}
                   disabled={!vocabFile || uploading === "vocab"}
                   className="w-full"
                 >
@@ -381,7 +441,47 @@ const Admin = () => {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload Vocab
+                      Upload from File
+                    </>
+                  )}
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  </div>
+                </div>
+
+                {/* Paste JSON Option */}
+                <div className="space-y-2">
+                  <Label htmlFor="vocab-json">Option 2: Paste JSON Code</Label>
+                  <Textarea
+                    id="vocab-json"
+                    placeholder="Paste your JSON here..."
+                    value={vocabJson}
+                    onChange={(e) => setVocabJson(e.target.value)}
+                    className="min-h-[200px] font-mono text-xs"
+                  />
+                </div>
+
+                <Button
+                  onClick={() => handleUpload("vocab", true)}
+                  disabled={!vocabJson.trim() || uploading === "vocab"}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  {uploading === "vocab" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload from Pasted JSON
                     </>
                   )}
                 </Button>
