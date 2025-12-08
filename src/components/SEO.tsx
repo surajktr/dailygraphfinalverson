@@ -17,7 +17,7 @@ const defaultImage = "https://storage.googleapis.com/gpt-engineer-file-uploads/U
 const SEO = ({
   title = "Dailygraph - SSC CGL, CHSL Preparation | News Articles & English Practice",
   description = "Dailygraph - Complete SSC CGL, CHSL, Pre & Mains preparation platform. 📰 Daily News Articles 🧠 Difficult Words 🟢 Synonyms 🟠 One-Word Substitution 💬 Idioms & Phrases ✍️ Cloze Test 🔤 Para Jumbles 📖 Reading Comprehension for competitive exams.",
-  keywords = "SSC CGL, SSC CHSL, SSC preparation, competitive exams, government exams, news articles, vocabulary, difficult words, synonyms, antonyms, one word substitution, idioms and phrases, cloze test, para jumbles, reading comprehension, English preparation, SSC Pre, SSC Mains, newspaper articles",
+  keywords = "Dailygraph, Daily Graph, DailyGraph, Graph Daily, SSC Dailygraph, SSC English, SSC Vocab, SSC Vocabulary, SSC Editorial, CGL Mains Editorial, SSC CHSL English, SSC CGL English, SSC CGL, SSC CHSL, SSC preparation, SSC CGL preparation, SSC CHSL preparation, SSC Mains, SSC Pre, SSC Tier 1, SSC Tier 2, competitive exams, government exams, sarkari exam, news articles, daily news, current affairs, vocabulary, difficult words, synonyms, antonyms, one word substitution, idioms and phrases, cloze test, para jumbles, reading comprehension, English preparation, newspaper articles, editorial vocabulary, English vocab SSC, SSC English practice, SSC grammar, SSC comprehension, free SSC preparation, online SSC coaching",
   ogTitle,
   ogDescription,
   ogImage = defaultImage,
