@@ -142,10 +142,11 @@ const Admin = () => {
           .maybeSingle();
 
         const vocabData = {
-          syno_questions: jsonData.syno || null,
-          idioms_questions: jsonData.idioms_questions || null,
-          ows_questions: jsonData.ows_questions || null,
-          news_vocabulary_questions: jsonData.news_vocabulary_questions || null,
+          syno_questions: jsonData.synonyms || null,
+          idioms_questions: jsonData.idioms || null,
+          antonyms_questions: jsonData.antonyms || null,
+          ows_questions: jsonData.ows || null,
+          news_vocabulary_questions: jsonData.news_vocabulary || null,
           updated_at: new Date().toISOString(),
         };
 
@@ -498,10 +499,10 @@ const Admin = () => {
                   <p>Expected JSON format:</p>
                   <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
 {`{
-  "syno": [{...}],
-  "idioms_questions": [{...}],
-  "ows_questions": [{...}],
-  "news_vocabulary_questions": [{...}]
+  "synonyms": [{"id": 1, "question": "...", "options": {"A": "...", "B": "...", "C": "...", "D": "..."}, "answer": "B", "solution": "..."}],
+  "idioms": [{"id": 1, "question": "...", "options": {...}, "answer": "A", "solution": "..."}],
+  "antonyms": [{"id": 1, "question": "...", "options": {...}, "answer": "C", "solution": "..."}],
+  "ows": [{"id": 1, "question": "...", "options": {...}, "answer": "B", "solution": "..."}]
 }`}
                   </pre>
                 </div>
