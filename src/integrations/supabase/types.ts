@@ -14,34 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
-      daily_content: {
+      categories: {
         Row: {
-          created_at: string
-          file_url: string | null
-          html_content: string
+          created_at: string | null
+          description: string | null
+          exam_type: string
           id: string
-          title: string | null
-          updated_at: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          exam_type: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          exam_type?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      current_affairs: {
+        Row: {
+          created_at: string | null
+          id: string
+          questions: Json
+          updated_at: string | null
           upload_date: string
           user_id: string
         }
         Insert: {
-          created_at?: string
-          file_url?: string | null
-          html_content: string
+          created_at?: string | null
           id?: string
-          title?: string | null
-          updated_at?: string
+          questions: Json
+          updated_at?: string | null
           upload_date: string
           user_id: string
         }
         Update: {
-          created_at?: string
-          file_url?: string | null
-          html_content?: string
+          created_at?: string | null
           id?: string
-          title?: string | null
-          updated_at?: string
+          questions?: Json
+          updated_at?: string | null
           upload_date?: string
           user_id?: string
         }
@@ -80,6 +107,74 @@ export type Database = {
         }
         Relationships: []
       }
+      test_sets_consolidated: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean | null
+          negative_marks: number | null
+          positive_marks: number | null
+          questions: Json | null
+          series_description: string | null
+          series_icon: string | null
+          series_name: string
+          series_order: number | null
+          set_name: string
+          set_order: number | null
+          updated_at: string | null
+          year: string
+          year_order: number | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          duration_minutes: number
+          id?: string
+          is_active?: boolean | null
+          negative_marks?: number | null
+          positive_marks?: number | null
+          questions?: Json | null
+          series_description?: string | null
+          series_icon?: string | null
+          series_name: string
+          series_order?: number | null
+          set_name: string
+          set_order?: number | null
+          updated_at?: string | null
+          year: string
+          year_order?: number | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          negative_marks?: number | null
+          positive_marks?: number | null
+          questions?: Json | null
+          series_description?: string | null
+          series_icon?: string | null
+          series_name?: string
+          series_order?: number | null
+          set_name?: string
+          set_order?: number | null
+          updated_at?: string | null
+          year?: string
+          year_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_sets_consolidated_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -101,11 +196,218 @@ export type Database = {
         }
         Relationships: []
       }
+      user_test_attempts: {
+        Row: {
+          answers: Json | null
+          attempted_questions: number | null
+          created_at: string | null
+          end_time: string | null
+          id: string
+          score: number | null
+          start_time: string | null
+          status: string
+          test_set_id: string
+          time_remaining_seconds: number | null
+          total_questions: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          attempted_questions?: number | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          score?: number | null
+          start_time?: string | null
+          status?: string
+          test_set_id: string
+          time_remaining_seconds?: number | null
+          total_questions?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          attempted_questions?: number | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          score?: number | null
+          start_time?: string | null
+          status?: string
+          test_set_id?: string
+          time_remaining_seconds?: number | null
+          total_questions?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_test_attempts_test_set_id_fkey"
+            columns: ["test_set_id"]
+            isOneToOne: false
+            referencedRelation: "test_sets_consolidated"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_test_attempts_test_set_id_fkey"
+            columns: ["test_set_id"]
+            isOneToOne: false
+            referencedRelation: "test_sets_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_test_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          exam_preparing_for: string | null
+          full_name: string
+          id: string
+          mobile_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          exam_preparing_for?: string | null
+          full_name: string
+          id: string
+          mobile_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          exam_preparing_for?: string | null
+          full_name?: string
+          id?: string
+          mobile_number?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      vocab_questions: {
+        Row: {
+          antonyms_questions: Json | null
+          created_at: string | null
+          id: string
+          idioms_questions: Json | null
+          news_vocabulary_questions: Json | null
+          ows_questions: Json | null
+          syno_questions: Json | null
+          updated_at: string | null
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          antonyms_questions?: Json | null
+          created_at?: string | null
+          id?: string
+          idioms_questions?: Json | null
+          news_vocabulary_questions?: Json | null
+          ows_questions?: Json | null
+          syno_questions?: Json | null
+          updated_at?: string | null
+          upload_date: string
+          user_id: string
+        }
+        Update: {
+          antonyms_questions?: Json | null
+          created_at?: string | null
+          id?: string
+          idioms_questions?: Json | null
+          news_vocabulary_questions?: Json | null
+          ows_questions?: Json | null
+          syno_questions?: Json | null
+          updated_at?: string | null
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      test_sets_safe: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          id: string | null
+          is_active: boolean | null
+          negative_marks: number | null
+          positive_marks: number | null
+          questions: Json | null
+          series_description: string | null
+          series_icon: string | null
+          series_name: string | null
+          series_order: number | null
+          set_name: string | null
+          set_order: number | null
+          updated_at: string | null
+          year: string | null
+          year_order: number | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          negative_marks?: number | null
+          positive_marks?: number | null
+          questions?: never
+          series_description?: string | null
+          series_icon?: string | null
+          series_name?: string | null
+          series_order?: number | null
+          set_name?: string | null
+          set_order?: number | null
+          updated_at?: string | null
+          year?: string | null
+          year_order?: number | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          negative_marks?: number | null
+          positive_marks?: number | null
+          questions?: never
+          series_description?: string | null
+          series_icon?: string | null
+          series_name?: string | null
+          series_order?: number | null
+          set_name?: string | null
+          set_order?: number | null
+          updated_at?: string | null
+          year?: string | null
+          year_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_sets_consolidated_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      get_test_questions_safe: { Args: { test_set_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -114,6 +416,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { user_uuid: string }; Returns: boolean }
+      validate_and_score_test: {
+        Args: { p_answers: Json; p_attempt_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
