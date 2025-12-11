@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import GraphViewer from "@/components/GraphViewer";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import AdBanner from "@/components/AdBanner";
 
 const Viewer = () => {
   // Detect mobile device
@@ -54,6 +55,9 @@ const Viewer = () => {
             isMobile={isMobile}
           />
         </main>
+        <div className="container max-w-4xl mx-auto px-4">
+          <AdBanner slot="1122334455" format="horizontal" />
+        </div>
         <Footer />
       </div>
     </>

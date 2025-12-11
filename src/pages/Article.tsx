@@ -6,6 +6,7 @@ import { Loader2, ArrowLeft, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import AdBanner from "@/components/AdBanner";
 import { useToast } from "@/hooks/use-toast";
 
 type DailyContent = Database['public']['Tables']['daily_content']['Row'] & {
@@ -225,11 +226,17 @@ const Article = () => {
             </div>
           )}
 
+          {/* Top Ad */}
+          <AdBanner slot="1234567890" format="horizontal" className="mb-6" />
+
           {/* Article HTML Content */}
           <div
             className="prose prose-slate dark:prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: article.html_content }}
           />
+
+          {/* Bottom Ad */}
+          <AdBanner slot="0987654321" format="rectangle" className="mt-8" />
 
           {/* Keywords */}
           {article.keywords && article.keywords.length > 0 && (
