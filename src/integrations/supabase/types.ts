@@ -175,6 +175,33 @@ export type Database = {
           },
         ]
       }
+      topicwise: {
+        Row: {
+          created_at: string | null
+          id: string
+          questions: Json
+          updated_at: string | null
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          questions: Json
+          updated_at?: string | null
+          upload_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          questions?: Json
+          updated_at?: string | null
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -293,45 +320,6 @@ export type Database = {
           id?: string
           mobile_number?: string
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      vocab_questions: {
-        Row: {
-          antonyms_questions: Json | null
-          created_at: string | null
-          id: string
-          idioms_questions: Json | null
-          news_vocabulary_questions: Json | null
-          ows_questions: Json | null
-          syno_questions: Json | null
-          updated_at: string | null
-          upload_date: string
-          user_id: string
-        }
-        Insert: {
-          antonyms_questions?: Json | null
-          created_at?: string | null
-          id?: string
-          idioms_questions?: Json | null
-          news_vocabulary_questions?: Json | null
-          ows_questions?: Json | null
-          syno_questions?: Json | null
-          updated_at?: string | null
-          upload_date: string
-          user_id: string
-        }
-        Update: {
-          antonyms_questions?: Json | null
-          created_at?: string | null
-          id?: string
-          idioms_questions?: Json | null
-          news_vocabulary_questions?: Json | null
-          ows_questions?: Json | null
-          syno_questions?: Json | null
-          updated_at?: string | null
-          upload_date?: string
-          user_id?: string
         }
         Relationships: []
       }

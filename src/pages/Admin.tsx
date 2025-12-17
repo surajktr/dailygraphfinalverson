@@ -13,7 +13,7 @@ import { Upload, LogOut, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 
-type ContentType = "editorial" | "current_affairs" | "vocab";
+type ContentType = "editorial" | "current_affairs" | "topicwise";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -21,9 +21,9 @@ const Admin = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [editorialFile, setEditorialFile] = useState<File | null>(null);
   const [currentAffairsFile, setCurrentAffairsFile] = useState<File | null>(null);
-  const [vocabFile, setVocabFile] = useState<File | null>(null);
+  const [topicwiseFile, setTopicwiseFile] = useState<File | null>(null);
   const [currentAffairsJson, setCurrentAffairsJson] = useState<string>("");
-  const [vocabJson, setVocabJson] = useState<string>("");
+  const [topicwiseJson, setTopicwiseJson] = useState<string>("");
   const [uploading, setUploading] = useState<ContentType | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: ContentType) => {
@@ -33,7 +33,7 @@ const Admin = () => {
     if (selectedFile && selectedFile.type === expectedType) {
       if (type === "editorial") setEditorialFile(selectedFile);
       else if (type === "current_affairs") setCurrentAffairsFile(selectedFile);
-      else if (type === "vocab") setVocabFile(selectedFile);
+      else if (type === "topicwise") setTopicwiseFile(selectedFile);
     } else {
       toast({
         title: "Invalid file",
@@ -45,8 +45,8 @@ const Admin = () => {
 
   const handleUpload = async (type: ContentType, useJsonInput: boolean = false) => {
     const file = type === "editorial" ? editorialFile : 
-                 type === "current_affairs" ? currentAffairsFile : vocabFile;
-    const jsonInput = type === "current_affairs" ? currentAffairsJson : vocabJson;
+                 type === "current_affairs" ? currentAffairsFile : topicwiseFile;
+    const jsonInput = type === "current_affairs" ? currentAffairsJson : topicwiseJson;
     
     if (!useJsonInput && !file) {
       toast({
@@ -132,35 +132,29 @@ const Admin = () => {
             });
           if (error) throw error;
         }
-      } else if (type === "vocab") {
-        // Vocab upload - table needs to be created via migration
+      } else if (type === "topicwise") {
+        // Topicwise upload - same format as current affairs
         const jsonData = JSON.parse(content);
         const { data: existing } = await (supabase as any)
-          .from("vocab_questions")
+          .from("topicwise")
           .select("id")
           .eq("upload_date", formattedDate)
           .maybeSingle();
 
-        const vocabData = {
-          syno_questions: jsonData.synonyms || null,
-          idioms_questions: jsonData.idioms || null,
-          antonyms_questions: jsonData.antonyms || null,
-          ows_questions: jsonData.ows || null,
-          news_vocabulary_questions: jsonData.news_vocabulary || null,
-          updated_at: new Date().toISOString(),
-        };
-
         if (existing) {
           const { error } = await (supabase as any)
-            .from("vocab_questions")
-            .update(vocabData)
+            .from("topicwise")
+            .update({
+              questions: jsonData,
+              updated_at: new Date().toISOString(),
+            })
             .eq("id", existing.id);
           if (error) throw error;
         } else {
           const { error } = await (supabase as any)
-            .from("vocab_questions")
+            .from("topicwise")
             .insert({
-              ...vocabData,
+              questions: jsonData,
               upload_date: formattedDate,
               user_id: session.session.user.id,
             });
@@ -170,7 +164,7 @@ const Admin = () => {
 
       toast({
         title: "Success",
-        description: `${type === "editorial" ? "Editorial" : type === "current_affairs" ? "Current Affairs" : "Vocab"} uploaded for ${format(selectedDate, "MMMM do, yyyy")}`,
+        description: `${type === "editorial" ? "Editorial" : type === "current_affairs" ? "Current Affairs" : "Topicwise"} uploaded for ${format(selectedDate, "MMMM do, yyyy")}`,
       });
 
       // Reset file and json input
@@ -178,9 +172,9 @@ const Admin = () => {
       else if (type === "current_affairs") {
         setCurrentAffairsFile(null);
         setCurrentAffairsJson("");
-      } else if (type === "vocab") {
-        setVocabFile(null);
-        setVocabJson("");
+      } else if (type === "topicwise") {
+        setTopicwiseFile(null);
+        setTopicwiseJson("");
       }
       
       // Reset file input
@@ -242,7 +236,7 @@ const Admin = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="editorial">Editorial</TabsTrigger>
             <TabsTrigger value="current_affairs">Current Affairs</TabsTrigger>
-            <TabsTrigger value="vocab">Vocab</TabsTrigger>
+            <TabsTrigger value="topicwise">Topicwise</TabsTrigger>
           </TabsList>
 
           {/* Editorial Tab */}
@@ -407,11 +401,11 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
-          {/* Vocab Tab */}
-          <TabsContent value="vocab">
+          {/* Topicwise Tab */}
+          <TabsContent value="topicwise">
             <Card>
               <CardHeader>
-                <CardTitle>Upload Vocab Questions</CardTitle>
+                <CardTitle>Upload Topicwise Questions</CardTitle>
                 <CardDescription>
                   Upload JSON file or paste JSON for {format(selectedDate, "MMMM do, yyyy")}
                 </CardDescription>
@@ -419,30 +413,30 @@ const Admin = () => {
               <CardContent className="space-y-4">
                 {/* File Upload Option */}
                 <div className="space-y-2">
-                  <Label htmlFor="vocab-upload">Option 1: Upload JSON File</Label>
+                  <Label htmlFor="topicwise-upload">Option 1: Upload JSON File</Label>
                   <Input
-                    id="vocab-upload"
+                    id="topicwise-upload"
                     type="file"
                     accept=".json"
-                    onChange={(e) => handleFileChange(e, "vocab")}
+                    onChange={(e) => handleFileChange(e, "topicwise")}
                   />
                 </div>
 
-                {vocabFile && (
+                {topicwiseFile && (
                   <div className="p-3 bg-secondary rounded-md">
-                    <p className="text-sm font-medium">{vocabFile.name}</p>
+                    <p className="text-sm font-medium">{topicwiseFile.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {(vocabFile.size / 1024).toFixed(2)} KB
+                      {(topicwiseFile.size / 1024).toFixed(2)} KB
                     </p>
                   </div>
                 )}
 
                 <Button
-                  onClick={() => handleUpload("vocab", false)}
-                  disabled={!vocabFile || uploading === "vocab"}
+                  onClick={() => handleUpload("topicwise", false)}
+                  disabled={!topicwiseFile || uploading === "topicwise"}
                   className="w-full"
                 >
-                  {uploading === "vocab" ? (
+                  {uploading === "topicwise" ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Uploading...
@@ -466,23 +460,23 @@ const Admin = () => {
 
                 {/* Paste JSON Option */}
                 <div className="space-y-2">
-                  <Label htmlFor="vocab-json">Option 2: Paste JSON Code</Label>
+                  <Label htmlFor="topicwise-json">Option 2: Paste JSON Code</Label>
                   <Textarea
-                    id="vocab-json"
+                    id="topicwise-json"
                     placeholder="Paste your JSON here..."
-                    value={vocabJson}
-                    onChange={(e) => setVocabJson(e.target.value)}
+                    value={topicwiseJson}
+                    onChange={(e) => setTopicwiseJson(e.target.value)}
                     className="min-h-[200px] font-mono text-xs"
                   />
                 </div>
 
                 <Button
-                  onClick={() => handleUpload("vocab", true)}
-                  disabled={!vocabJson.trim() || uploading === "vocab"}
+                  onClick={() => handleUpload("topicwise", true)}
+                  disabled={!topicwiseJson.trim() || uploading === "topicwise"}
                   className="w-full"
                   variant="secondary"
                 >
-                  {uploading === "vocab" ? (
+                  {uploading === "topicwise" ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Uploading...
@@ -496,13 +490,22 @@ const Admin = () => {
                 </Button>
 
                 <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Expected JSON format:</p>
+                  <p>Expected JSON format (same as Current Affairs):</p>
                   <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
 {`{
-  "synonyms": [{"id": 1, "question": "...", "options": {"A": "...", "B": "...", "C": "...", "D": "..."}, "answer": "B", "solution": "..."}],
-  "idioms": [{"id": 1, "question": "...", "options": {...}, "answer": "A", "solution": "..."}],
-  "antonyms": [{"id": 1, "question": "...", "options": {...}, "answer": "C", "solution": "..."}],
-  "ows": [{"id": 1, "question": "...", "options": {...}, "answer": "B", "solution": "..."}]
+  "title": "Quiz Title",
+  "description": "Description",
+  "questions": [{
+    "id": 1,
+    "question_en": "...",
+    "question_hi": "...",
+    "options": [
+      {"label": "A", "text_en": "...", "text_hi": "..."}
+    ],
+    "answer": "A",
+    "explanation_en": "...",
+    "explanation_hi": "..."
+  }]
 }`}
                   </pre>
                 </div>
