@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, LogOut, Loader2 } from "lucide-react";
+import { Upload, LogOut, Loader2, Copy, Check, Key } from "lucide-react";
 import { format } from "date-fns";
 import SEO from "@/components/SEO";
 
@@ -25,6 +25,16 @@ const Admin = () => {
   const [currentAffairsJson, setCurrentAffairsJson] = useState<string>("");
   const [topicwiseJson, setTopicwiseJson] = useState<string>("");
   const [uploading, setUploading] = useState<ContentType | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const API_KEY = "dg_api_k3y_2024_s3cur3_upl04d_x7m9p2q";
+  const API_URL = "https://cdwikwwpakmlauiddasz.supabase.co/functions/v1/content-upload-api";
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(null), 2000);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: ContentType) => {
     const selectedFile = e.target.files?.[0];
@@ -513,6 +523,112 @@ const Admin = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* API Documentation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              API Upload Documentation
+            </CardTitle>
+            <CardDescription>
+              Use this API to upload content programmatically
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* API Key */}
+            <div className="space-y-2">
+              <Label>API Key</Label>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-muted p-2 rounded text-sm font-mono break-all">
+                  {API_KEY}
+                </code>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(API_KEY, 'api-key')}
+                >
+                  {copied === 'api-key' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+
+            {/* API URL */}
+            <div className="space-y-2">
+              <Label>API Endpoint</Label>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-muted p-2 rounded text-sm font-mono break-all">
+                  {API_URL}
+                </code>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(API_URL, 'api-url')}
+                >
+                  {copied === 'api-url' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+
+            {/* Request Format */}
+            <div className="space-y-2">
+              <Label>Request Format (POST)</Label>
+              <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+{`curl -X POST "${API_URL}" \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: ${API_KEY}" \\
+  -d '{
+    "type": "current_affairs",
+    "upload_date": "2024-12-18",
+    "questions": [
+      {
+        "id": 1,
+        "question_en": "Your question in English",
+        "question_hi": "Your question in Hindi",
+        "options": [
+          {"label": "A", "text_en": "Option A", "text_hi": "विकल्प A"},
+          {"label": "B", "text_en": "Option B", "text_hi": "विकल्प B"},
+          {"label": "C", "text_en": "Option C", "text_hi": "विकल्प C"},
+          {"label": "D", "text_en": "Option D", "text_hi": "विकल्प D"}
+        ],
+        "answer": "A",
+        "explanation_en": "Explanation in English",
+        "explanation_hi": "Explanation in Hindi"
+      }
+    ]
+  }'`}
+              </pre>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => copyToClipboard(`curl -X POST "${API_URL}" -H "Content-Type: application/json" -H "x-api-key: ${API_KEY}" -d '{"type": "current_affairs", "upload_date": "2024-12-18", "questions": []}'`, 'curl')}
+              >
+                {copied === 'curl' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                Copy cURL Command
+              </Button>
+            </div>
+
+            {/* Parameters */}
+            <div className="space-y-2">
+              <Label>Parameters</Label>
+              <div className="bg-muted p-3 rounded text-sm space-y-2">
+                <p><strong>type</strong> (required): <code>"current_affairs"</code> or <code>"topicwise"</code></p>
+                <p><strong>upload_date</strong> (required): Date in <code>YYYY-MM-DD</code> format</p>
+                <p><strong>questions</strong> (required): Array of question objects</p>
+              </div>
+            </div>
+
+            {/* Headers */}
+            <div className="space-y-2">
+              <Label>Required Headers</Label>
+              <div className="bg-muted p-3 rounded text-sm space-y-1">
+                <p><code>Content-Type: application/json</code></p>
+                <p><code>x-api-key: {API_KEY}</code></p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
     </>

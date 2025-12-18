@@ -1,1 +1,4 @@
 project_id = "cdwikwwpakmlauiddasz"
+
+[functions.content-upload-api]
+verify_jwt = false
