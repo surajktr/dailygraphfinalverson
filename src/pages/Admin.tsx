@@ -532,10 +532,10 @@ const Admin = () => {
               API Upload Documentation
             </CardTitle>
             <CardDescription>
-              Use this API to upload content programmatically
+              Use this API to upload content programmatically (Editorial, Current Affairs, Topicwise)
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {/* API Key */}
             <div className="space-y-2">
               <Label>API Key</Label>
@@ -570,9 +570,54 @@ const Admin = () => {
               </div>
             </div>
 
-            {/* Request Format */}
+            {/* Required Headers */}
             <div className="space-y-2">
-              <Label>Request Format (POST)</Label>
+              <Label>Required Headers</Label>
+              <div className="bg-muted p-3 rounded text-sm space-y-1">
+                <p><code>Content-Type: application/json</code></p>
+                <p><code>x-api-key: {API_KEY}</code></p>
+              </div>
+            </div>
+
+            {/* Type 1: Editorial */}
+            <div className="space-y-2 border-t pt-4">
+              <Label className="text-base font-semibold">1. Editorial Upload (HTML)</Label>
+              <div className="bg-muted p-3 rounded text-sm space-y-2">
+                <p><strong>type:</strong> <code>"editorial"</code></p>
+                <p><strong>upload_date:</strong> <code>"YYYY-MM-DD"</code></p>
+                <p><strong>html_content:</strong> Full HTML content string</p>
+                <p><strong>title:</strong> (optional) Title string</p>
+              </div>
+              <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+{`curl -X POST "${API_URL}" \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: ${API_KEY}" \\
+  -d '{
+    "type": "editorial",
+    "upload_date": "2024-12-18",
+    "title": "Daily Editorial",
+    "html_content": "<div data-article-id=\\"1\\"><h2>Article Title</h2><p>Content...</p></div>"
+  }'`}
+              </pre>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => copyToClipboard(`curl -X POST "${API_URL}" -H "Content-Type: application/json" -H "x-api-key: ${API_KEY}" -d '{"type": "editorial", "upload_date": "2024-12-18", "title": "Daily Editorial", "html_content": "<div data-article-id=\\"1\\"><h2>Title</h2><p>Content</p></div>"}'`, 'curl-editorial')}
+              >
+                {copied === 'curl-editorial' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                Copy Editorial cURL
+              </Button>
+            </div>
+
+            {/* Type 2: Current Affairs */}
+            <div className="space-y-2 border-t pt-4">
+              <Label className="text-base font-semibold">2. Current Affairs Upload (JSON)</Label>
+              <div className="bg-muted p-3 rounded text-sm space-y-2">
+                <p><strong>type:</strong> <code>"current_affairs"</code></p>
+                <p><strong>upload_date:</strong> <code>"YYYY-MM-DD"</code></p>
+                <p><strong>questions:</strong> Array of question objects</p>
+              </div>
               <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
 {`curl -X POST "${API_URL}" \\
   -H "Content-Type: application/json" \\
@@ -580,52 +625,99 @@ const Admin = () => {
   -d '{
     "type": "current_affairs",
     "upload_date": "2024-12-18",
-    "questions": [
-      {
-        "id": 1,
-        "question_en": "Your question in English",
-        "question_hi": "Your question in Hindi",
-        "options": [
-          {"label": "A", "text_en": "Option A", "text_hi": "विकल्प A"},
-          {"label": "B", "text_en": "Option B", "text_hi": "विकल्प B"},
-          {"label": "C", "text_en": "Option C", "text_hi": "विकल्प C"},
-          {"label": "D", "text_en": "Option D", "text_hi": "विकल्प D"}
-        ],
-        "answer": "A",
-        "explanation_en": "Explanation in English",
-        "explanation_hi": "Explanation in Hindi"
-      }
-    ]
+    "questions": {
+      "title": "Current Affairs Quiz",
+      "description": "Daily quiz",
+      "questions": [
+        {
+          "id": 1,
+          "question_en": "Question in English?",
+          "question_hi": "प्रश्न हिंदी में?",
+          "options": [
+            {"label": "A", "text_en": "Option A", "text_hi": "विकल्प A"},
+            {"label": "B", "text_en": "Option B", "text_hi": "विकल्प B"},
+            {"label": "C", "text_en": "Option C", "text_hi": "विकल्प C"},
+            {"label": "D", "text_en": "Option D", "text_hi": "विकल्प D"}
+          ],
+          "answer": "A",
+          "explanation_en": "Explanation in English",
+          "explanation_hi": "हिंदी में व्याख्या"
+        }
+      ]
+    }
   }'`}
               </pre>
               <Button
                 size="sm"
                 variant="outline"
                 className="w-full"
-                onClick={() => copyToClipboard(`curl -X POST "${API_URL}" -H "Content-Type: application/json" -H "x-api-key: ${API_KEY}" -d '{"type": "current_affairs", "upload_date": "2024-12-18", "questions": []}'`, 'curl')}
+                onClick={() => copyToClipboard(`curl -X POST "${API_URL}" -H "Content-Type: application/json" -H "x-api-key: ${API_KEY}" -d '{"type": "current_affairs", "upload_date": "2024-12-18", "questions": {"title": "Quiz", "questions": []}}'`, 'curl-ca')}
               >
-                {copied === 'curl' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                Copy cURL Command
+                {copied === 'curl-ca' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                Copy Current Affairs cURL
               </Button>
             </div>
 
-            {/* Parameters */}
-            <div className="space-y-2">
-              <Label>Parameters</Label>
+            {/* Type 3: Topicwise */}
+            <div className="space-y-2 border-t pt-4">
+              <Label className="text-base font-semibold">3. Topicwise Upload (JSON)</Label>
               <div className="bg-muted p-3 rounded text-sm space-y-2">
-                <p><strong>type</strong> (required): <code>"current_affairs"</code> or <code>"topicwise"</code></p>
-                <p><strong>upload_date</strong> (required): Date in <code>YYYY-MM-DD</code> format</p>
-                <p><strong>questions</strong> (required): Array of question objects</p>
+                <p><strong>type:</strong> <code>"topicwise"</code></p>
+                <p><strong>upload_date:</strong> <code>"YYYY-MM-DD"</code></p>
+                <p><strong>questions:</strong> Array of question objects (same format as Current Affairs)</p>
               </div>
+              <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+{`curl -X POST "${API_URL}" \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: ${API_KEY}" \\
+  -d '{
+    "type": "topicwise",
+    "upload_date": "2024-12-18",
+    "questions": {
+      "title": "Topicwise Quiz",
+      "description": "Topic specific quiz",
+      "questions": [
+        {
+          "id": 1,
+          "question_en": "Question in English?",
+          "question_hi": "प्रश्न हिंदी में?",
+          "options": [
+            {"label": "A", "text_en": "Option A", "text_hi": "विकल्प A"},
+            {"label": "B", "text_en": "Option B", "text_hi": "विकल्प B"},
+            {"label": "C", "text_en": "Option C", "text_hi": "विकल्प C"},
+            {"label": "D", "text_en": "Option D", "text_hi": "विकल्प D"}
+          ],
+          "answer": "B",
+          "explanation_en": "Explanation in English",
+          "explanation_hi": "हिंदी में व्याख्या"
+        }
+      ]
+    }
+  }'`}
+              </pre>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => copyToClipboard(`curl -X POST "${API_URL}" -H "Content-Type: application/json" -H "x-api-key: ${API_KEY}" -d '{"type": "topicwise", "upload_date": "2024-12-18", "questions": {"title": "Quiz", "questions": []}}'`, 'curl-tw')}
+              >
+                {copied === 'curl-tw' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                Copy Topicwise cURL
+              </Button>
             </div>
 
-            {/* Headers */}
-            <div className="space-y-2">
-              <Label>Required Headers</Label>
-              <div className="bg-muted p-3 rounded text-sm space-y-1">
-                <p><code>Content-Type: application/json</code></p>
-                <p><code>x-api-key: {API_KEY}</code></p>
-              </div>
+            {/* Success Response */}
+            <div className="space-y-2 border-t pt-4">
+              <Label>Success Response</Label>
+              <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+{`{
+  "success": true,
+  "message": "Content created/updated successfully",
+  "type": "current_affairs",
+  "upload_date": "2024-12-18",
+  "questions_count": 10
+}`}
+              </pre>
             </div>
           </CardContent>
         </Card>

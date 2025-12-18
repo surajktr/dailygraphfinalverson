@@ -45,21 +45,31 @@ serve(async (req) => {
     }
 
     // Validate type
-    if (!['current_affairs', 'topicwise'].includes(type)) {
+    if (!['current_affairs', 'topicwise', 'editorial'].includes(type)) {
       return new Response(
         JSON.stringify({ 
-          error: 'Invalid type. Must be "current_affairs" or "topicwise"' 
+          error: 'Invalid type. Must be "current_affairs", "topicwise", or "editorial"' 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate questions format
-    if (!Array.isArray(questions)) {
-      return new Response(
-        JSON.stringify({ error: 'Questions must be an array' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Validate content format based on type
+    if (type === 'editorial') {
+      const { html_content, title } = body;
+      if (!html_content) {
+        return new Response(
+          JSON.stringify({ error: 'html_content is required for editorial type' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      if (!Array.isArray(questions)) {
+        return new Response(
+          JSON.stringify({ error: 'Questions must be an array for current_affairs/topicwise' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Create Supabase client with service role
@@ -67,17 +77,70 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if entry exists for this date
+    let result;
+    
+    if (type === 'editorial') {
+      const { html_content, title } = body;
+      
+      // Check if entry exists for this date in daily_graphs
+      const { data: existing } = await supabase
+        .from('daily_graphs')
+        .select('id')
+        .eq('upload_date', upload_date)
+        .single();
+
+      if (existing) {
+        const { data, error } = await supabase
+          .from('daily_graphs')
+          .update({ 
+            html_content,
+            title: title || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('upload_date', upload_date)
+          .select()
+          .single();
+
+        if (error) throw error;
+        result = { action: 'updated', data };
+      } else {
+        const { data, error } = await supabase
+          .from('daily_graphs')
+          .insert({
+            upload_date,
+            html_content,
+            title: title || null,
+            user_id: '00000000-0000-0000-0000-000000000000'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        result = { action: 'created', data };
+      }
+
+      console.log(`Editorial ${result.action} for ${upload_date}`);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: `Editorial ${result.action} successfully`,
+          type,
+          upload_date,
+          title: title || null
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle current_affairs and topicwise
     const { data: existing } = await supabase
       .from(type)
       .select('id')
       .eq('upload_date', upload_date)
       .single();
 
-    let result;
-
     if (existing) {
-      // Update existing entry
       const { data, error } = await supabase
         .from(type)
         .update({ 
@@ -91,13 +154,12 @@ serve(async (req) => {
       if (error) throw error;
       result = { action: 'updated', data };
     } else {
-      // Insert new entry - use a system user ID for API uploads
       const { data, error } = await supabase
         .from(type)
         .insert({
           upload_date,
           questions,
-          user_id: '00000000-0000-0000-0000-000000000000' // System API user
+          user_id: '00000000-0000-0000-0000-000000000000'
         })
         .select()
         .single();
