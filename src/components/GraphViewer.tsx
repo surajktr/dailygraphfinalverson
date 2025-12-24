@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import EditorialViewer from "@/components/EditorialViewer";
 
 // Helper to load external assets once and inject styles/scripts so the HTML works as-is
 const ensureExternalAssets = async (doc: Document, headNodes: Node[]) => {
@@ -96,10 +97,15 @@ const GraphViewer = ({
   const bodyObserverRef = useRef<MutationObserver | null>(null);
   const externalBodyNodesRef = useRef<Set<HTMLElement>>(new Set());
   const injectionActiveRef = useRef<boolean>(false);
+  const [isJsonContent, setIsJsonContent] = useState(false);
+  const [jsonData, setJsonData] = useState<any>(null);
+  
   useEffect(() => {
     const loadGraph = async () => {
       // Reset content first to force re-render
       setHtmlContent("");
+      setJsonData(null);
+      setIsJsonContent(false);
       setLoading(true);
       setError(null);
       try {
@@ -109,7 +115,16 @@ const GraphViewer = ({
         } = await supabase.from("daily_graphs").select("html_content").eq("upload_date", date).maybeSingle();
         if (dbError) throw dbError;
         if (data && data.html_content) {
-          setHtmlContent(data.html_content);
+          // Check if content is JSON
+          try {
+            const parsed = JSON.parse(data.html_content);
+            setJsonData(parsed);
+            setIsJsonContent(true);
+          } catch {
+            // It's HTML content
+            setHtmlContent(data.html_content);
+            setIsJsonContent(false);
+          }
           onLoadSuccess?.();
         } else {
           setError("No content found for this date");
