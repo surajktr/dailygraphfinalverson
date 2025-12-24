@@ -20,6 +20,7 @@ const Admin = () => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [editorialFile, setEditorialFile] = useState<File | null>(null);
+  const [editorialJson, setEditorialJson] = useState<string>("");
   const [currentAffairsFile, setCurrentAffairsFile] = useState<File | null>(null);
   const [topicwiseFile, setTopicwiseFile] = useState<File | null>(null);
   const [currentAffairsJson, setCurrentAffairsJson] = useState<string>("");
@@ -38,16 +39,17 @@ const Admin = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: ContentType) => {
     const selectedFile = e.target.files?.[0];
-    const expectedType = type === "editorial" ? "text/html" : "application/json";
+    // All content types now accept JSON
+    const expectedType = "application/json";
     
-    if (selectedFile && selectedFile.type === expectedType) {
+    if (selectedFile && (selectedFile.type === expectedType || selectedFile.name.endsWith('.json'))) {
       if (type === "editorial") setEditorialFile(selectedFile);
       else if (type === "current_affairs") setCurrentAffairsFile(selectedFile);
       else if (type === "topicwise") setTopicwiseFile(selectedFile);
     } else {
       toast({
         title: "Invalid file",
-        description: `Please select a ${type === "editorial" ? "HTML" : "JSON"} file`,
+        description: "Please select a JSON file",
         variant: "destructive",
       });
     }
@@ -56,12 +58,13 @@ const Admin = () => {
   const handleUpload = async (type: ContentType, useJsonInput: boolean = false) => {
     const file = type === "editorial" ? editorialFile : 
                  type === "current_affairs" ? currentAffairsFile : topicwiseFile;
-    const jsonInput = type === "current_affairs" ? currentAffairsJson : topicwiseJson;
+    const jsonInput = type === "editorial" ? editorialJson :
+                      type === "current_affairs" ? currentAffairsJson : topicwiseJson;
     
     if (!useJsonInput && !file) {
       toast({
         title: "No file selected",
-        description: `Please select a ${type === "editorial" ? "HTML" : "JSON"} file to upload`,
+        description: "Please select a JSON file to upload",
         variant: "destructive",
       });
       return;
@@ -88,7 +91,14 @@ const Admin = () => {
       }
 
       if (type === "editorial") {
-        // Editorial upload to daily_graphs
+        // Editorial upload to daily_graphs - now stores JSON in html_content field
+        // Validate JSON first
+        try {
+          JSON.parse(content);
+        } catch {
+          throw new Error("Invalid JSON format");
+        }
+        
         const { data: existing } = await supabase
           .from("daily_graphs")
           .select("id")
@@ -178,8 +188,10 @@ const Admin = () => {
       });
 
       // Reset file and json input
-      if (type === "editorial") setEditorialFile(null);
-      else if (type === "current_affairs") {
+      if (type === "editorial") {
+        setEditorialFile(null);
+        setEditorialJson("");
+      } else if (type === "current_affairs") {
         setCurrentAffairsFile(null);
         setCurrentAffairsJson("");
       } else if (type === "topicwise") {
@@ -253,18 +265,19 @@ const Admin = () => {
           <TabsContent value="editorial">
             <Card>
               <CardHeader>
-                <CardTitle>Upload Editorial</CardTitle>
+                <CardTitle>Upload Editorial (JSON)</CardTitle>
                 <CardDescription>
-                  Upload HTML file for {format(selectedDate, "MMMM do, yyyy")}
+                  Upload JSON file or paste JSON for {format(selectedDate, "MMMM do, yyyy")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* File Upload Option */}
                 <div className="space-y-2">
-                  <Label htmlFor="editorial-upload">HTML File</Label>
+                  <Label htmlFor="editorial-upload">Option 1: Upload JSON File</Label>
                   <Input
                     id="editorial-upload"
                     type="file"
-                    accept=".html"
+                    accept=".json"
                     onChange={(e) => handleFileChange(e, "editorial")}
                   />
                 </div>
@@ -279,7 +292,7 @@ const Admin = () => {
                 )}
 
                 <Button
-                  onClick={() => handleUpload("editorial")}
+                  onClick={() => handleUpload("editorial", false)}
                   disabled={!editorialFile || uploading === "editorial"}
                   className="w-full"
                 >
@@ -291,10 +304,54 @@ const Admin = () => {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload Editorial
+                      Upload from File
                     </>
                   )}
                 </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  </div>
+                </div>
+
+                {/* Paste JSON Option */}
+                <div className="space-y-2">
+                  <Label htmlFor="editorial-json">Option 2: Paste JSON Code</Label>
+                  <Textarea
+                    id="editorial-json"
+                    placeholder="Paste your Editorial JSON here..."
+                    value={editorialJson}
+                    onChange={(e) => setEditorialJson(e.target.value)}
+                    className="min-h-[200px] font-mono text-xs"
+                  />
+                </div>
+
+                <Button
+                  onClick={() => handleUpload("editorial", true)}
+                  disabled={!editorialJson.trim() || uploading === "editorial"}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  {uploading === "editorial" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload from Pasted JSON
+                    </>
+                  )}
+                </Button>
+
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>Expected JSON format with articles, quizzes, vocabulary, synonyms, idioms, etc.</p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
