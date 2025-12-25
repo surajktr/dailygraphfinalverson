@@ -540,6 +540,21 @@ const GraphViewer = ({
     </div>;
   }
   
+  // If JSON content, render EditorialViewer
+  if (isJsonContent && jsonData) {
+    return (
+      <EditorialViewer
+        date={date}
+        zoom={zoom}
+        onZoomChange={onZoomChange}
+        onDateChange={onDateChange}
+        onLoadSuccess={onLoadSuccess}
+        isMobile={isMobile}
+      />
+    );
+  }
+
+  // Otherwise render HTML content
   return <div className="w-full h-full flex flex-col relative">
       {/* Header with branding, zoom controls, and date picker */}
       {!headerHidden && (
