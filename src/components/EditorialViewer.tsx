@@ -146,15 +146,15 @@ const WordPopover = ({ word, hindi, definition, children }: { word: string; hind
   );
 };
 
-// Sentence Translation Popover
-const SentencePopover = ({ sentence, explanation, children }: { sentence: string; explanation: string; children: React.ReactNode }) => {
+// Sentence Translation Popover - appears at START of sentence
+const SentencePopover = ({ sentence, explanation }: { sentence: string; explanation: string }) => {
   const [open, setOpen] = useState(false);
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button 
-          className="inline-flex items-center justify-center p-1 ml-1 text-amber-600 hover:text-amber-700 dark:text-amber-400"
+          className="inline-flex items-center justify-center mr-1 text-blue-600 hover:text-blue-700 dark:text-blue-400 align-middle"
           onClick={() => setOpen(true)}
           title="See Hindi explanation"
         >
@@ -215,7 +215,7 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
     });
   };
 
-  // Render text with sentence-by-sentence book icons
+  // Render text with sentence-by-sentence book icons at START
   const renderTextWithTranslations = () => {
     const sentences = splitIntoSentences(article.text);
     
@@ -227,12 +227,10 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
       
       return (
         <span key={idx}>
-          {highlightText(sentence, article.vocabulary)}
           {analysis && (
-            <SentencePopover sentence={analysis.sentence} explanation={analysis.explanation}>
-              <BookOpen className="h-4 w-4 inline" />
-            </SentencePopover>
+            <SentencePopover sentence={analysis.sentence} explanation={analysis.explanation} />
           )}
+          {highlightText(sentence, article.vocabulary)}
         </span>
       );
     });
@@ -240,27 +238,36 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
 
   return (
     <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6">
-      {/* Article Header */}
-      <div className="border-b-2 border-slate-200 dark:border-slate-700 pb-4 mb-4">
-        <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-          {article.title}
-        </h2>
-      </div>
-      
       {/* Article Image */}
       {article.imageUrl && (
-        <div className="mb-4">
+        <div className="mb-4 rounded-lg overflow-hidden">
           <img 
             src={article.imageUrl} 
             alt={article.title}
-            className="w-full h-48 object-cover rounded-lg"
+            className="w-full h-auto object-cover"
           />
         </div>
       )}
       
-      {/* Article Text with Book Icons */}
+      {/* Article Header with Take Quiz button */}
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <h2 className="font-serif text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+          {article.title}
+        </h2>
+        {quizzes && quizzes.length > 0 && (
+          <Button 
+            onClick={() => setShowQuiz(true)}
+            className="bg-red-500 hover:bg-red-600 text-white text-sm shrink-0"
+            size="sm"
+          >
+            📝 Take Quiz
+          </Button>
+        )}
+      </div>
+      
+      {/* Article Text with Book Icons at START of sentences */}
       <div className="prose prose-slate dark:prose-invert max-w-none mb-4">
-        <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-justify">
+        <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-justify text-base">
           {renderTextWithTranslations()}
         </p>
       </div>
@@ -284,99 +291,72 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
         )}
       </div>
       
-      {/* Sentence Analysis Section */}
-      {article.sentenceAnalyses && article.sentenceAnalyses.length > 0 && (
-        <div className="mt-4">
-          <h3 className="font-serif font-bold text-lg text-slate-900 dark:text-slate-100 mb-3">
-            📝 Sentence-by-Sentence Analysis
-          </h3>
-          <div className="space-y-3">
-            {article.sentenceAnalyses.map((analysis, i) => (
-              <div key={i} className="border-l-4 border-blue-500 pl-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-r-lg">
-                <p className="text-slate-800 dark:text-slate-200 font-medium italic">
-                  "{analysis.sentence}"
-                </p>
-                <p className="text-slate-600 dark:text-slate-400 mt-2 text-sm">
-                  ➡️ {analysis.explanation}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* Vocabulary Grid with Speaker */}
+      {/* Difficult Words Section - matching reference style */}
       {article.vocabulary && article.vocabulary.length > 0 && (
         <div className="mt-6">
-          <h3 className="font-serif font-bold text-lg text-slate-900 dark:text-slate-100 mb-3">
-            📚 Vocabulary
+          <h3 className="text-center font-bold text-xl text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-wide">
+            Difficult Words
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             {article.vocabulary.map((v, i) => (
-              <div key={i} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-red-600 dark:text-red-400">{v.word}</span>
+              <div key={i} className="py-2">
+                <div className="flex items-start gap-1 flex-wrap">
+                  <span className="font-bold text-red-600 dark:text-red-400">{i + 1}. {v.word}</span>
                   <button 
                     onClick={() => speakWord(v.word)}
-                    className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600"
+                    className="p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600"
                     title="Listen"
                   >
                     <Volume2 className="h-3 w-3" />
                   </button>
+                  <span className="text-red-600 dark:text-red-400">({v.hindi}):</span>
+                  <span className="text-slate-700 dark:text-slate-300">{v.definition}</span>
                 </div>
-                <span className="text-blue-600 dark:text-blue-400 text-sm">({v.hindi})</span>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{v.definition}</p>
               </div>
             ))}
           </div>
         </div>
       )}
-      
-      {/* Quiz Button */}
-      {quizzes && quizzes.length > 0 && (
-        <div className="mt-6">
-          <Button 
-            onClick={() => setShowQuiz(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            📝 Take Quiz ({quizzes.length} questions)
-          </Button>
-        </div>
-      )}
-      
-      {/* Quiz Modal */}
+
+      {/* Quiz Modal - Reading Comprehension style */}
       {showQuiz && quizzes && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-auto p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-serif font-bold text-xl">Quiz: {article.title}</h3>
-              <button onClick={() => { setShowQuiz(false); setIsSubmitted(false); setSelectedAnswers({}); }} className="text-2xl">×</button>
-            </div>
+          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-auto p-6 relative">
+            <button 
+              onClick={() => { setShowQuiz(false); setIsSubmitted(false); setSelectedAnswers({}); }} 
+              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 text-2xl font-light"
+            >
+              ×
+            </button>
+            
+            <h3 className="text-center font-serif font-bold text-2xl text-slate-700 dark:text-slate-200 mb-6">
+              Reading Comprehension
+            </h3>
             
             <div className="space-y-6">
               {quizzes.map((q) => (
-                <div key={q.id} className="border-b border-slate-200 dark:border-slate-700 pb-4">
-                  <p className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                <div key={q.id} className="border-b border-slate-200 dark:border-slate-700 pb-6">
+                  <p className="font-bold text-slate-900 dark:text-slate-100 mb-4">
                     {q.id}. {q.question}
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {q.options.map((opt, oi) => {
                       const isSelected = selectedAnswers[q.id] === opt;
                       const isCorrect = opt === q.answer;
-                      let className = "flex items-center gap-3 p-3 rounded-md cursor-pointer transition-colors ";
+                      let bgClass = "bg-slate-50 dark:bg-slate-700/50";
                       
                       if (isSubmitted) {
-                        if (isCorrect) className += "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200";
-                        else if (isSelected) className += "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200";
-                        else className += "bg-slate-100 dark:bg-slate-700";
-                      } else {
-                        className += isSelected 
-                          ? "bg-blue-100 dark:bg-blue-900" 
-                          : "hover:bg-slate-100 dark:hover:bg-slate-700";
+                        if (isCorrect) bgClass = "bg-green-100 dark:bg-green-900/50";
+                        else if (isSelected) bgClass = "bg-red-100 dark:bg-red-900/50";
+                      } else if (isSelected) {
+                        bgClass = "bg-blue-50 dark:bg-blue-900/30";
                       }
                       
                       return (
-                        <label key={oi} className={className}>
+                        <label 
+                          key={oi} 
+                          className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-colors ${bgClass} hover:bg-slate-100 dark:hover:bg-slate-600/50`}
+                        >
                           <input
                             type="radio"
                             name={`quiz-${q.id}`}
@@ -384,15 +364,15 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
                             checked={isSelected}
                             disabled={isSubmitted}
                             onChange={() => setSelectedAnswers(prev => ({ ...prev, [q.id]: opt }))}
-                            className="form-radio h-4 w-4 text-blue-600"
+                            className="mt-1 h-4 w-4 text-blue-600 border-slate-300"
                           />
-                          <span>{opt}</span>
+                          <span className="text-slate-700 dark:text-slate-200 text-sm">{opt}</span>
                         </label>
                       );
                     })}
                   </div>
                   {isSubmitted && (
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                    <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded">
                       💡 {q.solution}
                     </p>
                   )}
@@ -400,9 +380,9 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
               ))}
             </div>
             
-            <div className="mt-4 flex gap-2">
+            <div className="mt-6 flex justify-center gap-3">
               {!isSubmitted ? (
-                <Button onClick={() => setIsSubmitted(true)} className="bg-green-600 hover:bg-green-700">
+                <Button onClick={() => setIsSubmitted(true)} className="bg-green-600 hover:bg-green-700 px-8">
                   Submit
                 </Button>
               ) : (
@@ -418,58 +398,73 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
   );
 };
 
-// Synonyms Section
+// Synonyms Section - matching reference with blue header
 const SynonymsSection = ({ synonyms }: { synonyms: Synonym[] }) => (
-  <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6">
-    <h2 className="font-serif text-xl font-bold text-slate-900 dark:text-slate-100 border-b-2 border-slate-200 dark:border-slate-700 pb-3 mb-4">
-      🔤 Synonyms
-    </h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {synonyms.map((s) => (
-        <div key={s.id} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-          <span className="font-bold text-slate-900 dark:text-slate-100">{s.english}</span>
-          <span className="text-blue-600 dark:text-blue-400 ml-2 text-sm">({s.hindi})</span>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            ≈ {s.englishSynonyms.join(", ")}
-          </p>
-        </div>
-      ))}
+  <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-6 overflow-hidden">
+    <div className="bg-blue-600 text-white px-4 py-3">
+      <h2 className="font-bold text-lg uppercase tracking-wide">Synonyms</h2>
+    </div>
+    <div className="p-4">
+      <div className="space-y-3">
+        {synonyms.map((s) => (
+          <div key={s.id} className="flex items-start gap-2">
+            <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">{s.id}.</span>
+            <div>
+              <span className="font-bold text-blue-700 dark:text-blue-400 uppercase">{s.english}</span>
+              <span className="text-slate-600 dark:text-slate-400 ml-2">({s.hindi})</span>
+              <p className="text-slate-600 dark:text-slate-400 uppercase text-sm">
+                {s.englishSynonyms.join(", ")}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 );
 
-// One Word Substitutions Section
+// One Word Substitutions Section - matching reference with blue header
 const OneWordSection = ({ items }: { items: OneWordSub[] }) => (
-  <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6">
-    <h2 className="font-serif text-xl font-bold text-slate-900 dark:text-slate-100 border-b-2 border-slate-200 dark:border-slate-700 pb-3 mb-4">
-      🎯 One Word Substitutions
-    </h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {items.map((item) => (
-        <div key={item.id} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-          <span className="font-bold text-purple-600 dark:text-purple-400">{item.word}</span>
-          <span className="text-blue-600 dark:text-blue-400 ml-2 text-sm">({item.hindi})</span>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{item.meaning}</p>
-        </div>
-      ))}
+  <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-6 overflow-hidden">
+    <div className="bg-blue-600 text-white px-4 py-3">
+      <h2 className="font-bold text-lg uppercase tracking-wide">One-Word Substitution</h2>
+    </div>
+    <div className="p-4">
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div key={item.id} className="flex items-start gap-2">
+            <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">{item.id}.</span>
+            <div>
+              <span className="font-bold text-blue-700 dark:text-blue-400 uppercase">{item.word}</span>
+              <span className="text-slate-600 dark:text-slate-400 ml-2">({item.hindi})</span>
+              <p className="text-slate-700 dark:text-slate-300 text-sm">{item.meaning}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 );
 
-// Idioms Section
+// Idioms Section - matching reference with blue header
 const IdiomsSection = ({ idioms }: { idioms: Idiom[] }) => (
-  <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6">
-    <h2 className="font-serif text-xl font-bold text-slate-900 dark:text-slate-100 border-b-2 border-slate-200 dark:border-slate-700 pb-3 mb-4">
-      💬 Idioms & Phrases
-    </h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {idioms.map((idiom) => (
-        <div key={idiom.id} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-          <span className="font-bold text-amber-600 dark:text-amber-400 uppercase text-sm">{idiom.phrase}</span>
-          <span className="text-blue-600 dark:text-blue-400 ml-2 text-xs">({idiom.hindi})</span>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{idiom.meaning}</p>
-        </div>
-      ))}
+  <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-6 overflow-hidden">
+    <div className="bg-blue-600 text-white px-4 py-3">
+      <h2 className="font-bold text-lg uppercase tracking-wide">Idioms & Phrases</h2>
+    </div>
+    <div className="p-4">
+      <div className="space-y-3">
+        {idioms.map((idiom) => (
+          <div key={idiom.id} className="flex items-start gap-2">
+            <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">{idiom.id}.</span>
+            <div>
+              <span className="font-bold text-blue-700 dark:text-blue-400 uppercase">{idiom.phrase}</span>
+              <span className="text-slate-600 dark:text-slate-400 ml-2">({idiom.hindi})</span>
+              <p className="text-slate-700 dark:text-slate-300 text-sm">{idiom.meaning}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 );
