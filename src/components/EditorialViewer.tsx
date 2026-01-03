@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ChevronDown, ChevronUp, CalendarIcon, ZoomIn, ZoomOut } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, CalendarIcon, ZoomIn, ZoomOut, Volume2, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -97,7 +97,18 @@ interface EditorialViewerProps {
   isMobile?: boolean;
 }
 
-// Word Popover Component
+// Text-to-Speech utility
+const speakWord = (text: string) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.8;
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
+// Word Popover Component with Speaker
 const WordPopover = ({ word, hindi, definition, children }: { word: string; hindi: string; definition: string; children: React.ReactNode }) => {
   const [open, setOpen] = useState(false);
   
@@ -118,9 +129,51 @@ const WordPopover = ({ word, hindi, definition, children }: { word: string; hind
         >
           ×
         </button>
-        <h4 className="font-bold text-lg text-slate-900 dark:text-slate-100">{word}</h4>
+        <div className="flex items-center gap-2">
+          <h4 className="font-bold text-lg text-slate-900 dark:text-slate-100">{word}</h4>
+          <button 
+            onClick={() => speakWord(word)}
+            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-blue-600"
+            title="Listen to pronunciation"
+          >
+            <Volume2 className="h-4 w-4" />
+          </button>
+        </div>
         <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">{hindi}</p>
         <p className="text-slate-600 dark:text-slate-300 text-sm mt-2">{definition}</p>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+// Sentence Translation Popover
+const SentencePopover = ({ sentence, explanation, children }: { sentence: string; explanation: string; children: React.ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button 
+          className="inline-flex items-center justify-center p-1 ml-1 text-amber-600 hover:text-amber-700 dark:text-amber-400"
+          onClick={() => setOpen(true)}
+          title="See Hindi explanation"
+        >
+          <BookOpen className="h-4 w-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-96 p-4">
+        <button 
+          onClick={() => setOpen(false)}
+          className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
+        >
+          ×
+        </button>
+        <p className="text-slate-800 dark:text-slate-200 font-medium text-sm italic mb-3">"{sentence}"</p>
+        <div className="border-t pt-3">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
+            <span className="font-semibold text-amber-600">➡️ हिंदी:</span> {explanation}
+          </p>
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -133,13 +186,18 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   
+  // Find sentence analysis for a given sentence
+  const findSentenceAnalysis = (text: string): SentenceAnalysis | undefined => {
+    return article.sentenceAnalyses?.find(sa => text.includes(sa.sentence.substring(0, 50)));
+  };
+  
+  // Split text into sentences
+  const splitIntoSentences = (text: string): string[] => {
+    return text.match(/[^.!?]+[.!?]+/g) || [text];
+  };
+  
   // Highlight vocabulary words in text
   const highlightText = (text: string, vocabulary: VocabularyWord[]) => {
-    let result = text;
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    
-    // Simple approach: wrap each word that matches vocabulary
     const words = text.split(/(\s+)/);
     
     return words.map((word, i) => {
@@ -154,6 +212,29 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
         );
       }
       return word;
+    });
+  };
+
+  // Render text with sentence-by-sentence book icons
+  const renderTextWithTranslations = () => {
+    const sentences = splitIntoSentences(article.text);
+    
+    return sentences.map((sentence, idx) => {
+      const analysis = article.sentenceAnalyses?.find(sa => 
+        sentence.trim().includes(sa.sentence.substring(0, 40)) || 
+        sa.sentence.includes(sentence.trim().substring(0, 40))
+      );
+      
+      return (
+        <span key={idx}>
+          {highlightText(sentence, article.vocabulary)}
+          {analysis && (
+            <SentencePopover sentence={analysis.sentence} explanation={analysis.explanation}>
+              <BookOpen className="h-4 w-4 inline" />
+            </SentencePopover>
+          )}
+        </span>
+      );
     });
   };
 
@@ -177,10 +258,10 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
         </div>
       )}
       
-      {/* Article Text */}
+      {/* Article Text with Book Icons */}
       <div className="prose prose-slate dark:prose-invert max-w-none mb-4">
         <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-justify">
-          {highlightText(article.text, article.vocabulary)}
+          {renderTextWithTranslations()}
         </p>
       </div>
       
@@ -191,7 +272,7 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
           onClick={() => setShowTranslation(!showTranslation)}
           className="w-full justify-between"
         >
-          <span>📖 Hindi Translation</span>
+          <span>📖 Full Hindi Translation</span>
           {showTranslation ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
         {showTranslation && (
@@ -203,11 +284,11 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
         )}
       </div>
       
-      {/* Sentence Analysis */}
+      {/* Sentence Analysis Section */}
       {article.sentenceAnalyses && article.sentenceAnalyses.length > 0 && (
         <div className="mt-4">
           <h3 className="font-serif font-bold text-lg text-slate-900 dark:text-slate-100 mb-3">
-            📝 Sentence Analysis
+            📝 Sentence-by-Sentence Analysis
           </h3>
           <div className="space-y-3">
             {article.sentenceAnalyses.map((analysis, i) => (
@@ -224,7 +305,7 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
         </div>
       )}
       
-      {/* Vocabulary Grid */}
+      {/* Vocabulary Grid with Speaker */}
       {article.vocabulary && article.vocabulary.length > 0 && (
         <div className="mt-6">
           <h3 className="font-serif font-bold text-lg text-slate-900 dark:text-slate-100 mb-3">
@@ -233,8 +314,17 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {article.vocabulary.map((v, i) => (
               <div key={i} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span className="font-semibold text-red-600 dark:text-red-400">{v.word}</span>
-                <span className="text-blue-600 dark:text-blue-400 ml-2">({v.hindi})</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-red-600 dark:text-red-400">{v.word}</span>
+                  <button 
+                    onClick={() => speakWord(v.word)}
+                    className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600"
+                    title="Listen"
+                  >
+                    <Volume2 className="h-3 w-3" />
+                  </button>
+                </div>
+                <span className="text-blue-600 dark:text-blue-400 text-sm">({v.hindi})</span>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{v.definition}</p>
               </div>
             ))}
