@@ -116,13 +116,18 @@ const GraphViewer = ({
         if (dbError) throw dbError;
         if (data && data.html_content) {
           // Check if content is JSON
+          const contentStr = typeof data.html_content === 'string' 
+            ? data.html_content 
+            : JSON.stringify(data.html_content);
           try {
-            const parsed = JSON.parse(data.html_content);
+            const parsed = typeof data.html_content === 'string' 
+              ? JSON.parse(data.html_content) 
+              : data.html_content;
             setJsonData(parsed);
             setIsJsonContent(true);
           } catch {
             // It's HTML content
-            setHtmlContent(data.html_content);
+            setHtmlContent(contentStr);
             setIsJsonContent(false);
           }
           onLoadSuccess?.();

@@ -719,7 +719,12 @@ const EditorialViewer = ({
         if (dbData && dbData.html_content) {
           // Try to parse as JSON first
           try {
-            const jsonData = JSON.parse(dbData.html_content);
+            const contentStr = typeof dbData.html_content === 'string' 
+              ? dbData.html_content 
+              : JSON.stringify(dbData.html_content);
+            const jsonData = typeof dbData.html_content === 'string' 
+              ? JSON.parse(dbData.html_content) 
+              : dbData.html_content;
             setData(jsonData);
             onLoadSuccess?.();
           } catch {

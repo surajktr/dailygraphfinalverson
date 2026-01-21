@@ -267,66 +267,18 @@ const Admin = () => {
               <CardHeader>
                 <CardTitle>Upload Editorial (JSON)</CardTitle>
                 <CardDescription>
-                  Upload JSON file or paste JSON for {format(selectedDate, "MMMM do, yyyy")}
+                  Paste JSON for {format(selectedDate, "MMMM do, yyyy")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* File Upload Option */}
                 <div className="space-y-2">
-                  <Label htmlFor="editorial-upload">Option 1: Upload JSON File</Label>
-                  <Input
-                    id="editorial-upload"
-                    type="file"
-                    accept=".json"
-                    onChange={(e) => handleFileChange(e, "editorial")}
-                  />
-                </div>
-
-                {editorialFile && (
-                  <div className="p-3 bg-secondary rounded-md">
-                    <p className="text-sm font-medium">{editorialFile.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {(editorialFile.size / 1024).toFixed(2)} KB
-                    </p>
-                  </div>
-                )}
-
-                <Button
-                  onClick={() => handleUpload("editorial", false)}
-                  disabled={!editorialFile || uploading === "editorial"}
-                  className="w-full"
-                >
-                  {uploading === "editorial" ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload from File
-                    </>
-                  )}
-                </Button>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or</span>
-                  </div>
-                </div>
-
-                {/* Paste JSON Option */}
-                <div className="space-y-2">
-                  <Label htmlFor="editorial-json">Option 2: Paste JSON Code</Label>
+                  <Label htmlFor="editorial-json">Paste JSON Code</Label>
                   <Textarea
                     id="editorial-json"
                     placeholder="Paste your Editorial JSON here..."
                     value={editorialJson}
                     onChange={(e) => setEditorialJson(e.target.value)}
-                    className="min-h-[200px] font-mono text-xs"
+                    className="min-h-[300px] font-mono text-xs"
                   />
                 </div>
 
@@ -334,7 +286,6 @@ const Admin = () => {
                   onClick={() => handleUpload("editorial", true)}
                   disabled={!editorialJson.trim() || uploading === "editorial"}
                   className="w-full"
-                  variant="secondary"
                 >
                   {uploading === "editorial" ? (
                     <>
@@ -344,12 +295,12 @@ const Admin = () => {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload from Pasted JSON
+                      Upload JSON
                     </>
                   )}
                 </Button>
 
-                <div className="text-xs text-muted-foreground space-y-1">
+                <div className="text-xs text-muted-foreground">
                   <p>Expected JSON format with articles, quizzes, vocabulary, synonyms, idioms, etc.</p>
                 </div>
               </CardContent>
