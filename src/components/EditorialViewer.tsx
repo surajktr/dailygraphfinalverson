@@ -305,22 +305,24 @@ export default function EditorialViewer({
 
         {/* Main Content */}
         <main className="premium-main-content">
-          <article className="premium-article-card" style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }}>
-            <div className="premium-article-meta">
-              <span className="premium-category-tag">Editorial</span>
-              <span className="premium-read-time">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {Math.max(1, Math.ceil(data.text.split(' ').length / 200))} min read
-              </span>
-            </div>
+          {data.map((article, idx) => (
+            <article key={idx} className="premium-article-card" style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center', marginBottom: '24px' }}>
+              <div className="premium-article-meta">
+                <span className="premium-category-tag">Editorial</span>
+                <span className="premium-read-time">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {Math.max(1, Math.ceil((article.text || '').split(' ').length / 200))} min read
+                </span>
+              </div>
 
-            <h1 className="premium-article-title">{data.title}</h1>
+              <h1 className="premium-article-title">{article.title}</h1>
 
-            <div 
-              className="premium-article-body" 
-              dangerouslySetInnerHTML={{ __html: renderProcessedBody() || '' }} 
-            />
-          </article>
+              <div 
+                className="premium-article-body" 
+                dangerouslySetInnerHTML={{ __html: renderProcessedBody(article) || '' }} 
+              />
+            </article>
+          ))}
         </main>
 
         {/* Definition Popup */}
