@@ -42,6 +42,31 @@ export default async function handler(req: any, res: any) {
     <loc>https://dailygraph.in/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://dailygraph.in/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dailygraph.in/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dailygraph.in/privacy-policy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dailygraph.in/terms</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dailygraph.in/disclaimer</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>`;
 
     // Include all dynamic article routes
