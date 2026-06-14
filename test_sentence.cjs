@@ -1,0 +1,1 @@
+const html = '<p>This is a test sentence. And this is another.</p>'; const sentence = 'This is a test sentence.'; const escaped = sentence.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&'); const regex = new RegExp('(' + escaped + ')', 'g'); console.log(html.replace(regex, '[BTN] '));

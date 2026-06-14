@@ -243,7 +243,7 @@
 
 /* Vocabulary Word */
 .premium-vocab-word {
-    color: var(--accent);
+    color: #ff0000;
     font-weight: 600;
     cursor: pointer;
     position: relative;
@@ -276,9 +276,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-left: 4px;
-    opacity: 0.4;
-    vertical-align: middle;
+    margin-right: 6px;
+    margin-left: 2px;
+    opacity: 0.6;
+    vertical-align: baseline;
+    transform: translateY(2px);
     cursor: pointer;
     background: none;
     border: none;
@@ -370,7 +372,11 @@
 /* Translation */
 .premium-translation-section { margin-bottom: 16px; }
 .premium-translation-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
-.premium-translation-text { font-family: 'Noto Sans Devanagari', sans-serif; font-size: 22px; font-weight: 600; color: var(--accent); line-height: 1.4; }
+.premium-translation-text {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary); line-height: 1.4; }
 .premium-definition-section { margin-bottom: 20px; }
 .premium-definition-text { font-size: 15px; line-height: 1.7; color: var(--text-secondary); }
 
@@ -389,7 +395,11 @@
     display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 .premium-mark-learned-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-glow); }
-.premium-mark-learned-btn.learned { background: transparent; color: var(--green); border-color: var(--green); }
+.premium-mark-learned-btn.learned {
+    background: var(--green);
+    color: #ffffff;
+    border-color: var(--green);
+}
 .premium-mark-learned-btn svg { width: 18px; height: 18px; }
 
 /* Calendar Modal */
