@@ -38,7 +38,7 @@ export default function EditorialViewer({
   onLoadSuccess,
   isMobile
 }: EditorialViewerProps) {
-  const [data, setData] = useState<GraphData | null>(null);
+  const [data, setData] = useState<GraphData[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [learnedWords, setLearnedWords] = useState<string[]>([]);
@@ -94,8 +94,8 @@ export default function EditorialViewer({
             }
           }
 
-          if (parsedData && parsedData.text && parsedData.vocabulary) {
-            setData(parsedData);
+          if (parsedData && parsedData.articles && parsedData.articles.length > 0) {
+            setData(parsedData.articles);
             onLoadSuccess?.();
           } else {
             setError("Invalid JSON format found for this date.");
@@ -114,13 +114,13 @@ export default function EditorialViewer({
   }, [date, onLoadSuccess]);
 
   // Process article body to add interactive vocabulary words
-  const renderProcessedBody = () => {
-    if (!data) return null;
+  const renderProcessedBody = (article: GraphData) => {
+    if (!article) return null;
     
     // Sort words by length descending so longer phrases get matched first
-    const sortedVocab = [...data.vocabulary].sort((a, b) => b.word.length - a.word.length);
+    const sortedVocab = [...article.vocabulary].sort((a, b) => b.word.length - a.word.length);
     
-    let processedHtml = data.text;
+    let processedHtml = article.text;
 
     sortedVocab.forEach((vocab) => {
       // Create a case-insensitive regex that ensures whole word match, accounting for punctuation
@@ -157,7 +157,13 @@ export default function EditorialViewer({
       if (target.classList.contains('premium-vocab-word')) {
         const wordId = target.getAttribute('data-vocab-id');
         if (wordId) {
-          const vocabEntry = data.vocabulary.find(v => v.word.toLowerCase() === wordId);
+          // Find the word across all articles
+          let vocabEntry = null;
+          for (const article of data) {
+            vocabEntry = article.vocabulary.find(v => v.word.toLowerCase() === wordId);
+            if (vocabEntry) break;
+          }
+
           if (vocabEntry) {
             setPopupWord(vocabEntry);
           }
@@ -197,8 +203,8 @@ export default function EditorialViewer({
   const closePopup = () => setPopupWord(null);
 
   // Calculate progress
-  const totalWords = data?.vocabulary.length || 0;
-  const learnedCount = data ? data.vocabulary.filter(v => learnedWords.includes(v.word.toLowerCase())).length : 0;
+  const totalWords = data ? data.reduce((acc, curr) => acc + curr.vocabulary.length, 0) : 0;
+  const learnedCount = data ? data.reduce((acc, curr) => acc + curr.vocabulary.filter(v => learnedWords.includes(v.word.toLowerCase())).length, 0) : 0;
   const progressPercent = totalWords > 0 ? Math.round((learnedCount / totalWords) * 100) : 0;
   
   const radius = 18;
