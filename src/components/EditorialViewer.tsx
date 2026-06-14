@@ -414,17 +414,6 @@ export default function EditorialViewer({
               )}
             </button>
 
-            {/* Progress ring */}
-            <div className="dg-progress-ring" title={`${progressPercent}% learned`}>
-              <svg width="44" height="44" style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}>
-                <circle cx="22" cy="22" r="18" fill="none" stroke="var(--dg-border)" strokeWidth="3" />
-                <circle cx="22" cy="22" r="18" fill="none" stroke="var(--dg-accent)" strokeWidth="3"
-                  strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset}
-                  style={{ transition: "stroke-dashoffset 1s ease" }} />
-              </svg>
-              <span className="dg-progress-text">{progressPercent}%</span>
-            </div>
-
             {/* Zoom */}
             <button className="dg-icon-btn" onClick={handleZoom} title={`Font: ${fontSize}px`}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
@@ -517,13 +506,6 @@ export default function EditorialViewer({
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={savedBookmarks.includes(v.word) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                             </button>
-                          </div>
-                            <button
-                              className={`dg-learned-pill ${isLearned ? "learned" : ""}`}
-                              onClick={() => toggleLearned(v.word)}
-                            >
-                              {isLearned ? "Learned" : "Mark"}
-                            </button>
                         </div>
                         <div className="dg-vocab-hindi">{v.hindi}</div>
                         <div className="dg-vocab-def">{v.definition}</div>
@@ -546,15 +528,24 @@ export default function EditorialViewer({
             <div className="dg-sheet-header">
               <div className="dg-sheet-word-row">
                 <h2 className="dg-sheet-word">{popupWord.word}</h2>
-                <button
-                  className={`dg-audio-btn ${isAudioPlaying ? "playing" : ""}`}
-                  onClick={() => playAudio(popupWord.word)}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
-                </button>
+                <div className="flex gap-1">
+                  <button
+                    className={`dg-audio-btn ${isAudioPlaying ? "playing" : ""}`}
+                    onClick={() => playAudio(popupWord.word)}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </button>
+                  <button
+                    className={`dg-save-btn bg-background text-foreground border border-border p-1 rounded-sm hover:bg-secondary cursor-pointer shadow-sm transition-all ${savedBookmarks.includes(popupWord.word) ? 'text-red-500' : ''}`}
+                    onClick={() => toggleBookmark(popupWord)}
+                    title="Bookmark word"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={savedBookmarks.includes(popupWord.word) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                  </button>
+                </div>
               </div>
               <button className="dg-close" onClick={closePopup}>✕</button>
             </div>
@@ -579,17 +570,6 @@ export default function EditorialViewer({
                 <div className="dg-example-text">{popupWord.example}</div>
               </div>
             )}
-
-            <button
-              className={`dg-mark-btn ${learnedWords.includes(popupWord.word.toLowerCase()) ? "learned" : ""}`}
-              onClick={() => toggleLearned(popupWord.word)}
-            >
-              {learnedWords.includes(popupWord.word.toLowerCase()) ? (
-                <>Learned</>
-              ) : (
-                <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Mark as Learned</>
-              )}
-            </button>
           </>
         )}
       </div>
