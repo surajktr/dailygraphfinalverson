@@ -5,6 +5,8 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import SEO from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
 
 // Types for the editorial JSON structure
 interface VocabularyWord {
@@ -185,6 +187,25 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
   const [showQuiz, setShowQuiz] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Generate FAQ Schema for Vocabulary
+  const generateFaqSchema = () => {
+    if (!article.vocabulary || article.vocabulary.length === 0) return null;
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": article.vocabulary.map(v => ({
+        "@type": "Question",
+        "name": `What is the meaning of "${v.word}" in Hindi?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `The Hindi meaning of "${v.word}" is "${v.hindi}". Definition: ${v.definition}`
+        }
+      }))
+    };
+  };
+
   
   // Find sentence analysis for a given sentence
   const findSentenceAnalysis = (text: string): SentenceAnalysis | undefined => {
@@ -238,15 +259,15 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
 
   return (
     <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6">
-      {/* Article Image */}
-      {article.imageUrl && (
-        <div className="mb-4 rounded-lg overflow-hidden">
-          <img 
-            src={article.imageUrl} 
-            alt={article.title}
-            className="w-full h-auto object-cover"
-          />
-        </div>
+      
+      {/* Dynamic SEO for this specific article */}
+      {article && (
+        <SEO 
+          title={`${article.title} - The Hindu Editorial Vocabulary`}
+          description={`Read the daily editorial vocabulary and meaning for: ${article.title}. Enhance your reading comprehension and prepare for exams with Dailygraph.`}
+          keywords={`Dailygraph, ${article.title}, vocabulary, editorial, english to hindi, reading comprehension`}
+          schema={generateFaqSchema() || undefined}
+        />
       )}
       
       {/* Article Header with Take Quiz button */}
