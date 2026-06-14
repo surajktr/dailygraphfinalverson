@@ -350,7 +350,6 @@ export default function EditorialViewer({
 
   return (
     <div className="dg-container">
-      <div className="dg-ambient" />
 
       {/* ===== HEADER ===== */}
       <header className="dg-header">
