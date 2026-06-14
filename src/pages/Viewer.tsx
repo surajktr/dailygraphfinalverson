@@ -43,21 +43,16 @@ const Viewer = () => {
   return (
     <>
       <SEO />
-      <div className="min-h-screen flex flex-col">
-        <main className="flex-1">
-          <GraphViewer
-            date={formattedDate}
-            zoom={zoom}
-            onZoomChange={setZoom}
-            drawingTool={drawingTool}
-            onDateChange={handleDateChange}
-            onLoadSuccess={handleLoadSuccess}
-            isMobile={isMobile}
-          />
-        </main>
-        <div className="container max-w-4xl mx-auto px-4">
-          <AdBanner slot="1122334455" format="horizontal" />
-        </div>
+      <div>
+        <GraphViewer
+          date={formattedDate}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          drawingTool={drawingTool}
+          onDateChange={handleDateChange}
+          onLoadSuccess={handleLoadSuccess}
+          isMobile={isMobile}
+        />
         <Footer />
       </div>
     </>

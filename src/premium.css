@@ -363,6 +363,7 @@ html, body {
   font-size: 16px;
   color: #d00;
   flex: 1;
+  text-transform: capitalize;
 }
 .dg-vocab-item.learned .dg-vocab-word-text { color: var(--green); }
 
@@ -401,7 +402,7 @@ html, body {
   font-family: 'Noto Sans Devanagari', sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--dg-accent);
+  color: var(--text);
   margin-bottom: 4px;
   line-height: 1.4;
 }
