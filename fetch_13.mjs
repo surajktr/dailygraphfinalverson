@@ -16,7 +16,12 @@ Generate a JSON object containing:
    - "word": The extracted word/phrase.
    - "hindi": Simple layman Hindi meaning ONLY. Make it very easy to understand. For example, DO NOT say "उन्मूलन", instead say "जड़ से खत्म करना". DO NOT say "प्रतिकूल", say "विपरीत, उल्टा". DO NOT say "विसंगति", say "असंगति, बेमेलपन". DO NOT say "संवेदनशील", say "भावनात्मक रूप से नाजुक".
    - "definition": Explain the difficult word in simple, everyday layman's language using easy English words. Do NOT use complex synonyms. Make it extremely easy for a beginner to grasp the exact contextual meaning.
-5. "sentenceAnalyses": An array containing EVERY single sentence from the text translated into Hindi line-by-line. Each object must have "sentence" (the original English sentence) and "explanation" (the Hindi translation).
+5. "sentenceAnalyses": An array containing EVERY single sentence from the text translated into Hindi line-by-line. 
+   Each object must have:
+   - "sentence": the original English sentence
+   - "explanation": The Hindi translation. You MUST use very simple, natural, everyday layman Hindi. DO NOT use complex, formal, or bookish literal translations. Break down long complex English sentences into 2 or 3 short, easy-to-read Hindi sentences.
+     Example BAD translation: "राष्ट्रपति डोनाल्ड ट्रंप का ईरान पर हमला करने से पीछे हटने का निर्णय, देश के खार्ग द्वीप को जब्त करने की धमकी देने के कुछ ही घंटों बाद, तेहरान से निपटने में उनकी दुविधा को रेखांकित करता है।"
+     Example GOOD translation: "राष्ट्रपति डोनाल्ड ट्रंप ने पहले ईरान के खार्ग द्वीप पर कब्ज़ा करने की धमकी दी थी। लेकिन कुछ ही घंटों बाद, उन्होंने ईरान पर हमला न करने का फैसला किया। उनका यह कदम दिखाता है कि वे ईरान के मामले में काफी उलझन में हैं।"
 
 Return ONLY valid JSON matching this schema.`;
 
@@ -199,9 +204,9 @@ async function runBot() {
         
         console.log("Injecting data into HTML template...");
         const templateHtml = fs.readFileSync('C:/Users/Suraj/OneDrive/Desktop/MyProjects/dailygraph-supabase/supabase/functions/dailygraph-bot/template.ts', 'utf8');
-        // Extract string content from template.ts
-        const htmlTemplateMatch = templateHtml.match(/export const htmlTemplate = `([\s\S]*?)`;/);
-        const htmlTemplate = htmlTemplateMatch ? htmlTemplateMatch[1] : '';
+        // Get template text by removing the first line "export const htmlTemplate = `" and the last line "`;"
+        let htmlTemplate = templateHtml.replace('export const htmlTemplate = `', '');
+        htmlTemplate = htmlTemplate.substring(0, htmlTemplate.lastIndexOf('`;'));
 
         const injectedHtml = htmlTemplate.replace(
             '<script id="__INITIAL_DATA__">window.__INITIAL_DATA__ = null;</script>',
