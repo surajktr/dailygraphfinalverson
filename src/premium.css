@@ -6,16 +6,16 @@
 :root {
   --bg:        #FFFFFF;
   --bg2:       #FFFFFF;
-  --card:      #FFFFFF;
+  --dg-card:      #FFFFFF;
   --text:      #000000;
   --text2:     #404040;
-  --muted:     #808080;
-  --accent:    #E85D4E;
+  --dg-muted:     #808080;
+  --dg-accent:    #E85D4E;
   --accent-bg: rgba(232,93,78,0.10);
   --accent-glow: transparent;
   --green:     #16a34a;
   --green-bg:  rgba(22,163,74,0.10);
-  --border:    rgba(0,0,0,0.1);
+  --dg-border:    rgba(0,0,0,0.1);
   --shadow:    0 2px 10px rgba(0,0,0,0.05);
   --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
   --r:         12px;
@@ -26,16 +26,16 @@
 [data-theme="dark"], .dark {
   --bg:        #000000;
   --bg2:       #111111;
-  --card:      #111111;
+  --dg-card:      #111111;
   --text:      #FFFFFF;
   --text2:     #FFFFFF;
-  --muted:     #FFFFFF;
-  --accent:    #ff7b6b;
+  --dg-muted:     #FFFFFF;
+  --dg-accent:    #ff7b6b;
   --accent-bg: rgba(255,123,107,0.12);
   --accent-glow: transparent;
   --green:     #4ade80;
   --green-bg:  rgba(74,222,128,0.12);
-  --border:    rgba(255,255,255,0.1);
+  --dg-border:    rgba(255,255,255,0.1);
   --shadow:    0 2px 10px rgba(0,0,0,0.5);
   --shadow-lg: 0 10px 30px rgba(0,0,0,0.7);
 }
@@ -56,7 +56,7 @@ html, body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  min-height: calc(100vh - 40px);
   transition: background 0.4s ease, color 0.4s ease;
   position: relative;
   overflow-x: hidden;
@@ -76,29 +76,29 @@ html, body {
    ============================ */
 .dg-loader {
   text-align: center;
-  color: var(--muted);
+  color: var(--dg-muted);
 }
 .dg-spinner {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
+  border: 3px solid var(--dg-border);
+  border-top-color: var(--dg-accent);
   animation: spin 0.8s linear infinite;
   margin: 0 auto 14px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .dg-error-box {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--dg-card);
+  border: 1px solid var(--dg-border);
   border-radius: var(--r-lg);
   padding: 32px;
   text-align: center;
   max-width: 400px;
 }
-.dg-error-box h2 { color: var(--accent); font-size: 20px; margin-bottom: 8px; }
-.dg-error-box p  { color: var(--muted); font-size: 14px; }
+.dg-error-box h2 { color: var(--dg-accent); font-size: 20px; margin-bottom: 8px; }
+.dg-error-box p  { color: var(--dg-muted); font-size: 14px; }
 
 /* ============================
    HEADER
@@ -108,7 +108,7 @@ html, body {
   top: 0;
   z-index: 100;
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--dg-border);
   box-shadow: var(--shadow);
   transition: background 0.4s ease;
 }
@@ -177,7 +177,7 @@ html, body {
   transition: all 0.25s var(--ease);
   box-shadow: var(--shadow);
 }
-.dg-icon-btn:hover { transform: translateY(-2px); color: var(--accent); box-shadow: var(--shadow-lg); }
+.dg-icon-btn:hover { transform: translateY(-2px); color: var(--dg-accent); box-shadow: var(--shadow-lg); }
 .dg-icon-btn:active { transform: scale(0.93); }
 .dg-icon-btn svg { width: 18px; height: 18px; }
 
@@ -194,7 +194,7 @@ html, body {
 .dg-progress-text {
   font-size: 10px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--dg-accent);
   line-height: 1;
 }
 
@@ -213,7 +213,7 @@ html, body {
    ARTICLE
    ============================ */
 .dg-article {
-  background: var(--card);
+  background: var(--dg-card);
   border: 1.5px solid var(--text);
   border-radius: var(--r-lg);
   padding: 28px 13px 24px;
@@ -234,7 +234,7 @@ html, body {
 }
 .dg-tag {
   background: var(--accent-bg);
-  color: var(--accent);
+  color: var(--dg-accent);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -247,7 +247,7 @@ html, body {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dg-muted);
 }
 
 .dg-article-title {
@@ -280,7 +280,7 @@ html, body {
   transition: color 0.2s;
   display: inline;
 }
-.dg-vocab-word:hover { color: var(--accent); }
+.dg-vocab-word:hover { color: var(--dg-accent); }
 .dg-vocab-word.learned { color: var(--green); }
 
 /* ============================
@@ -295,7 +295,7 @@ html, body {
   margin-right: 4px;
   border: none;
   background: var(--accent-bg);
-  color: var(--accent);
+  color: var(--dg-accent);
   border-radius: 5px;
   cursor: pointer;
   vertical-align: middle;
@@ -304,7 +304,7 @@ html, body {
   flex-shrink: 0;
 }
 .dg-book-btn:hover {
-  background: var(--accent);
+  background: var(--dg-accent);
   color: #fff;
   transform: translateY(-2px) scale(1.1);
 }
@@ -314,7 +314,7 @@ html, body {
    ============================ */
 .dg-vocab-list {
   margin-top: 28px;
-  border-top: 2px solid var(--border);
+  border-top: 2px solid var(--dg-border);
   padding-top: 22px;
 }
 .dg-vocab-list-header {
@@ -329,7 +329,7 @@ html, body {
   color: var(--text);
 }
 .dg-vocab-count {
-  background: var(--accent);
+  background: var(--dg-accent);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -349,7 +349,7 @@ html, body {
   padding: 14px 16px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.dg-vocab-item:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.dg-vocab-item:hover { border-color: var(--dg-accent); box-shadow: 0 0 0 3px var(--accent-bg); }
 .dg-vocab-item.learned { border-color: var(--green); background: var(--green-bg); }
 
 .dg-vocab-item-top {
@@ -370,7 +370,7 @@ html, body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--dg-border);
   background: var(--bg2);
   color: var(--text2);
   display: flex;
@@ -380,14 +380,14 @@ html, body {
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
-.dg-speak-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dg-speak-btn:hover { background: var(--dg-accent); border-color: var(--dg-accent); color: #fff; }
 
 .dg-learned-pill {
   font-size: 11px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 20px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--dg-border);
   background: var(--bg2);
   color: var(--text);
   cursor: pointer;
@@ -401,7 +401,7 @@ html, body {
   font-family: 'Noto Sans Devanagari', sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--dg-accent);
   margin-bottom: 4px;
   line-height: 1.4;
 }
@@ -434,7 +434,7 @@ html, body {
   left: 0;
   right: 0;
   background: var(--bg2);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--dg-border);
   border-radius: 24px 24px 0 0;
   padding: 24px 22px 32px;
   z-index: 201;
@@ -454,7 +454,7 @@ html, body {
   display: block;
   width: 40px;
   height: 4px;
-  background: var(--border);
+  background: var(--dg-border);
   border-radius: 4px;
   margin: 0 auto 20px;
 }
@@ -481,16 +481,16 @@ html, body {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 2px solid var(--accent);
+  border: 2px solid var(--dg-accent);
   background: transparent;
-  color: var(--accent);
+  color: var(--dg-accent);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.25s ease;
 }
-.dg-audio-btn:hover, .dg-audio-btn.playing { background: var(--accent); color: #fff; }
+.dg-audio-btn:hover, .dg-audio-btn.playing { background: var(--dg-accent); color: #fff; }
 
 .dg-close {
   width: 30px;
@@ -498,7 +498,7 @@ html, body {
   border-radius: 50%;
   border: none;
   background: var(--bg);
-  color: var(--muted);
+  color: var(--dg-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -507,9 +507,9 @@ html, body {
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
-.dg-close:hover { background: var(--accent-bg); color: var(--accent); transform: rotate(90deg); }
+.dg-close:hover { background: var(--accent-bg); color: var(--dg-accent); transform: rotate(90deg); }
 
-.dg-divider { height: 1px; background: var(--border); margin: 14px 0; }
+.dg-divider { height: 1px; background: var(--dg-border); margin: 14px 0; }
 
 .dg-section { margin-bottom: 14px; }
 .dg-label {
@@ -517,7 +517,7 @@ html, body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--muted);
+  color: var(--dg-muted);
   margin-bottom: 6px;
 }
 .dg-hindi-text {
@@ -534,7 +534,7 @@ html, body {
 }
 .dg-example-box {
   background: var(--bg);
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--dg-accent);
   border-radius: 0 10px 10px 0;
   padding: 12px 14px;
   margin-top: 14px;
@@ -552,8 +552,8 @@ html, body {
   margin-top: 20px;
   padding: 14px;
   border-radius: 14px;
-  border: 2px solid var(--accent);
-  background: var(--accent);
+  border: 2px solid var(--dg-accent);
+  background: var(--dg-accent);
   color: #fff;
   font-family: 'Inter', sans-serif;
   font-size: 15px;
@@ -598,7 +598,7 @@ html, body {
   border-radius: 24px 24px 0 0;
   padding: 24px 20px 36px;
   width: 100%;
-  max-width: 480px;
+  max-width: 800px;
   transform: translateY(100%);
   transition: transform 0.4s var(--ease);
   box-shadow: 0 -12px 48px rgba(0,0,0,0.18);
@@ -637,7 +637,7 @@ html, body {
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.dg-cal-nav button:hover { background: var(--accent-bg); color: var(--accent); }
+.dg-cal-nav button:hover { background: var(--accent-bg); color: var(--dg-accent); }
 
 .dg-cal-grid {
   display: grid;
@@ -667,9 +667,9 @@ html, body {
   border: none;
   background: none;
 }
-.dg-cal-day:hover  { background: var(--accent-bg); color: var(--accent); }
-.dg-cal-day.today  { border: 2px solid var(--accent); color: var(--accent); font-weight: 700; }
-.dg-cal-day.active { background: var(--accent); color: #fff !important; box-shadow: 0 4px 12px var(--accent-glow); }
+.dg-cal-day:hover  { background: var(--accent-bg); color: var(--dg-accent); }
+.dg-cal-day.today  { border: 2px solid var(--dg-accent); color: var(--dg-accent); font-weight: 700; }
+.dg-cal-day.active { background: var(--dg-accent); color: #fff !important; box-shadow: 0 4px 12px var(--accent-glow); }
 
 /* ============================
    RESPONSIVE

@@ -372,8 +372,8 @@ export default function EditorialViewer({
             {/* Progress ring */}
             <div className="dg-progress-ring" title={`${progressPercent}% learned`}>
               <svg width="44" height="44" style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}>
-                <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border)" strokeWidth="3" />
-                <circle cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" strokeWidth="3"
+                <circle cx="22" cy="22" r="18" fill="none" stroke="var(--dg-border)" strokeWidth="3" />
+                <circle cx="22" cy="22" r="18" fill="none" stroke="var(--dg-accent)" strokeWidth="3"
                   strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset}
                   style={{ transition: "stroke-dashoffset 1s ease" }} />
               </svg>
@@ -391,7 +391,7 @@ export default function EditorialViewer({
             </button>
 
             {/* Telegram */}
-            <a href="https://t.me/basicenglishgyan" target="_blank" rel="noreferrer" className="dg-icon-btn" title="Join Telegram">
+            <a href="https://t.me/thedailygraph" target="_blank" rel="noreferrer" className="dg-icon-btn" title="Join Telegram">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </a>
           </div>
@@ -511,7 +511,7 @@ export default function EditorialViewer({
 
             {popupWord.example && (
               <div className="dg-example-box">
-                <div className="dg-label" style={{ color: "var(--accent)", marginBottom: 6 }}>Example</div>
+                <div className="dg-label" style={{ color: "var(--dg-accent)", marginBottom: 6 }}>Example</div>
                 <div className="dg-example-text">{popupWord.example}</div>
               </div>
             )}
