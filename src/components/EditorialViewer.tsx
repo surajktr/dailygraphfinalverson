@@ -125,7 +125,7 @@ const WordPopover = ({ word, hindi, definition, children }: { word: string; hind
           {children}
         </span>
       </PopoverTrigger>
-      <PopoverContent className="w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] p-4 max-h-[80vh] overflow-y-auto">
+      <PopoverContent className="w-[95vw] sm:w-80 max-w-sm p-3 rounded-lg max-h-[60vh] overflow-y-auto">
         <button 
           onClick={() => setOpen(false)}
           className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
@@ -164,7 +164,7 @@ const SentencePopover = ({ sentence, explanation }: { sentence: string; explanat
           📖
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[90vw] sm:w-96 max-w-[calc(100vw-2rem)] p-4 max-h-[80vh] overflow-y-auto">
+      <PopoverContent className="w-[95vw] sm:w-96 max-w-md p-3 rounded-lg max-h-[60vh] overflow-y-auto">
         <button 
           onClick={() => setOpen(false)}
           className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
@@ -778,7 +778,7 @@ const WeeklyVocabulary = ({ currentDate }: { currentDate: string }) => {
   if (vocabData.length === 0) return null;
 
   return (
-    <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-2 overflow-hidden mt-6 border border-red-100 dark:border-red-900">
+    <div className="page bg-white dark:bg-slate-800 rounded-none sm:rounded-lg shadow-sm mb-0 overflow-hidden mt-6 border border-red-100 dark:border-red-900 w-full">
       <div className="bg-gradient-to-r from-red-600 to-red-400 text-white px-4 py-3">
         <h2 className="font-serif font-bold text-xl uppercase tracking-wide flex items-center gap-2">
           📚 Weekly Vocabulary Revision
@@ -903,18 +903,18 @@ const EditorialViewer = ({
               variant="outline"
               size="icon"
               onClick={() => onZoomChange(Math.max(50, zoom - 10))}
-              className="h-7 w-7 sm:h-9 sm:w-9"
+              className="h-6 w-6 sm:h-7 sm:w-7"
             >
               <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <span className="text-xs sm:text-sm font-medium min-w-[2.5rem] text-center">
+            <span className="text-xs sm:text-sm font-medium w-8 text-center">
               {zoom}%
             </span>
             <Button
               variant="outline"
               size="icon"
               onClick={() => onZoomChange(Math.min(200, zoom + 10))}
-              className="h-7 w-7 sm:h-9 sm:w-9"
+              className="h-6 w-6 sm:h-7 sm:w-7"
             >
               <ZoomIn className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
@@ -923,7 +923,7 @@ const EditorialViewer = ({
           {/* Date Picker */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7 sm:h-9 px-2 sm:px-3">
+              <Button variant="outline" size="sm" className="h-8 sm:h-9 px-2 sm:px-3 bg-slate-100 dark:bg-slate-800 border-none">
                 <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="text-xs sm:text-sm">{format(currentDate, "MMM d")}</span>
               </Button>
@@ -943,7 +943,7 @@ const EditorialViewer = ({
             href="https://t.me/thedailygraph" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-blue-600 hover:opacity-80 shrink-0"
+            className="flex items-center text-blue-600 hover:opacity-80 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
               <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.62 12c-.88-.25-.89-1.02.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.58c-.28 1.13-1.04 1.4-1.74.88L14.25 16l-4.12 3.9c-.78.72-1.4.34-1.63-.55z" />
@@ -1013,7 +1013,7 @@ const EditorialViewer = ({
         <Header />
         
         <main 
-          className="max-w-4xl mx-auto p-4 transition-transform origin-top"
+          className="max-w-4xl mx-auto px-0 py-2 sm:p-4 transition-transform origin-top w-full"
           style={{ transform: `scale(${zoom / 100})` }}
         >
           {/* Articles */}
