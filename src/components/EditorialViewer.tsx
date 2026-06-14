@@ -34,7 +34,7 @@ interface EditorialViewerProps {
 function speakWord(text: string, onDone?: () => void) {
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 1.2;
+  utter.rate = 0.9;
   utter.pitch = 1;
 
   const voices = window.speechSynthesis.getVoices();
