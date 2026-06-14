@@ -132,9 +132,11 @@ html, body {
 }
 .dg-header-inner {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px 16px;
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
@@ -172,7 +174,9 @@ html, body {
 .dg-header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 .dg-icon-btn {
   width: 38px;
