@@ -485,6 +485,7 @@ const GraphViewer = ({
         onDateChange={onDateChange}
         onLoadSuccess={onLoadSuccess}
         isMobile={isMobile}
+        initialData={jsonData}
       />
     );
   }

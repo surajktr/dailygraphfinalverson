@@ -30,6 +30,7 @@ interface EditorialViewerProps {
   onDateChange: (date: Date) => void;
   onLoadSuccess?: () => void;
   isMobile?: boolean;
+  initialData?: any;
 }
 
 // Speak with Indian English voice, fast
@@ -62,6 +63,7 @@ export default function EditorialViewer({
   onDateChange,
   onLoadSuccess,
   isMobile,
+  initialData,
 }: EditorialViewerProps) {
   const [articles, setArticles] = useState<ArticleData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,26 +119,34 @@ export default function EditorialViewer({
     const fetchGraph = async () => {
       setLoading(true);
       setError(null);
+      
       try {
-        const { data: dbData, error: dbError } = await supabase
-          .from("daily_graphs")
-          .select("html_content")
-          .eq("upload_date", date)
-          .maybeSingle();
+        let dbData = null;
+        
+        if (!initialData) {
+            const { data, error: dbError } = await supabase
+              .from("daily_graphs")
+              .select("html_content")
+              .eq("upload_date", date)
+              .maybeSingle();
+              
+            if (dbError) throw dbError;
+            dbData = data;
+        }
 
-        if (dbError) throw dbError;
-
-        if (dbData && dbData.html_content) {
-          let parsedData: any = null;
+        if (initialData || (dbData && dbData.html_content)) {
+          let parsedData: any = initialData || null;
 
           try {
-            parsedData =
-              typeof dbData.html_content === "string"
-                ? JSON.parse(dbData.html_content)
-                : dbData.html_content;
+            if (!parsedData && dbData) {
+              parsedData =
+                typeof dbData.html_content === "string"
+                  ? JSON.parse(dbData.html_content)
+                  : dbData.html_content;
+            }
           } catch {
             if (
-              typeof dbData.html_content === "string" &&
+              dbData && typeof dbData.html_content === "string" &&
               dbData.html_content.includes("__INITIAL_DATA__")
             ) {
               try {
@@ -443,7 +453,7 @@ export default function EditorialViewer({
         <main className="dg-main">
           <SEO 
             title={`${articles[0].title} | Dailygraph`}
-            description={articles[0].text.substring(0, 160).replace(/<[^>]+>/g, '') + "..."}
+            description={(articles[0].text || "").substring(0, 160).replace(/<[^>]+>/g, '') + "..."}
             ogUrl={window.location.href}
           />
         {articles.map((article, idx) => (
