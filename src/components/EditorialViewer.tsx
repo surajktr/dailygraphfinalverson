@@ -69,6 +69,7 @@ export default function EditorialViewer({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [learnedWords, setLearnedWords] = useState<string[]>([]);
+  const [savedBookmarks, setSavedBookmarks] = useState<string[]>([]);
   const [isDark, setIsDark] = useState(false);
 
   // Popup state
@@ -86,11 +87,17 @@ export default function EditorialViewer({
   // Font size state
   const [fontSize, setFontSize] = useState(16);
 
-  // Load learned words from localStorage
+  // Load learned words and bookmarks from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem("learnedWords");
       if (saved) setLearnedWords(JSON.parse(saved));
+      
+      const savedVocab = localStorage.getItem("saved_vocab");
+      if (savedVocab) {
+        const parsed = JSON.parse(savedVocab);
+        setSavedBookmarks(parsed.map((item: any) => item.word));
+      }
     } catch {}
   }, []);
 
