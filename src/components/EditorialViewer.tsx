@@ -124,7 +124,7 @@ const WordPopover = ({ word, hindi, definition, children }: { word: string; hind
           {children}
         </span>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4">
+      <PopoverContent className="w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] p-4 max-h-[80vh] overflow-y-auto">
         <button 
           onClick={() => setOpen(false)}
           className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
@@ -163,7 +163,7 @@ const SentencePopover = ({ sentence, explanation }: { sentence: string; explanat
           📖
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-4">
+      <PopoverContent className="w-[90vw] sm:w-96 max-w-[calc(100vw-2rem)] p-4 max-h-[80vh] overflow-y-auto">
         <button 
           onClick={() => setOpen(false)}
           className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
@@ -258,7 +258,7 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
   };
 
   return (
-    <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6">
+    <div className="page bg-white dark:bg-slate-800 p-3 sm:p-6 rounded-lg shadow-sm mb-2">
       
       {/* Dynamic SEO for this specific article */}
       {article && (
@@ -288,7 +288,7 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
       
       {/* Article Text with Book Icons at START of sentences */}
       <div className="prose prose-slate dark:prose-invert max-w-none mb-4">
-        <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-justify text-base">
+        <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-justify text-base font-medium">
           {renderTextWithTranslations()}
         </p>
       </div>
@@ -331,7 +331,7 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
                     <Volume2 className="h-3 w-3" />
                   </button>
                   <span className="text-red-600 dark:text-red-400">({v.hindi}):</span>
-                  <span className="text-slate-700 dark:text-slate-300">{v.definition}</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">{v.definition}</span>
                 </div>
               </div>
             ))}
@@ -777,7 +777,7 @@ const WeeklyVocabulary = ({ currentDate }: { currentDate: string }) => {
   if (vocabData.length === 0) return null;
 
   return (
-    <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-6 overflow-hidden mt-8 border border-red-100 dark:border-red-900">
+    <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-2 overflow-hidden mt-6 border border-red-100 dark:border-red-900">
       <div className="bg-gradient-to-r from-red-600 to-red-400 text-white px-4 py-3">
         <h2 className="font-serif font-bold text-xl uppercase tracking-wide flex items-center gap-2">
           📚 Weekly Vocabulary Revision
@@ -879,7 +879,7 @@ const EditorialViewer = ({
   // Header Component
   const Header = () => (
     <header className={`bg-white dark:bg-slate-900 p-4 sm:p-5 border-b-2 border-slate-200 dark:border-slate-700 ${headerHidden ? 'hidden' : ''}`}>
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full">
         <div className="flex-1 flex items-center gap-2">
           <Button
             variant="ghost"
@@ -891,11 +891,11 @@ const EditorialViewer = ({
           </Button>
         </div>
         <div className="flex-1 text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold font-serif text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl sm:text-4xl font-bold font-serif text-slate-900 dark:text-slate-100 text-center w-full">
             The Dailygraph
           </h1>
         </div>
-        <div className="flex-1 flex justify-end items-center gap-2">
+        <div className="flex-1 flex justify-center sm:justify-end items-center gap-2 w-full flex-wrap">
           {/* Zoom Controls */}
           <div className="flex items-center gap-1">
             <Button
@@ -976,7 +976,7 @@ const EditorialViewer = ({
   if (error || !data) {
     return (
       <div className={isDarkMode ? 'dark' : ''}>
-        <div className="min-h-screen bg-slate-100 dark:bg-slate-900">
+        <div className="h-full bg-slate-100 dark:bg-slate-900">
           <SEO title="Content Not Found | Dailygraph" noIndex={true} />
           <Header />
           <div className="flex items-center justify-center p-8">
@@ -1007,7 +1007,7 @@ const EditorialViewer = ({
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-slate-100 dark:bg-slate-900">
+      <div className="h-full bg-slate-100 dark:bg-slate-900">
         <HeaderToggle />
         <Header />
         
