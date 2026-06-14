@@ -1,3 +1,4 @@
+@import "./premium.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -119,3 +120,4 @@ All colors MUST be HSL.
     touch-action: manipulation;
   }
 }
+

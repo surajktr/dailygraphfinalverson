@@ -1,94 +1,24 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ChevronDown, ChevronUp, CalendarIcon, ZoomIn, ZoomOut, Volume2, BookOpen } from "lucide-react";
+import * as React from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
-import SEO from "@/components/SEO";
-import { Helmet } from "react-helmet-async";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useTheme } from "next-themes";
+import { Volume2, ZoomIn, Calendar as CalendarIcon, Check, X, Moon, Sun } from "lucide-react";
 
-// Types for the editorial JSON structure
 interface VocabularyWord {
   word: string;
   hindi: string;
   definition: string;
+  example: string;
 }
 
-interface SentenceAnalysis {
-  sentence: string;
-  explanation: string;
-}
-
-interface Article {
-  id: string;
+interface GraphData {
   title: string;
+  titleHindi: string;
   text: string;
-  fullTranslationHindi: string;
-  imageUrl: string;
   vocabulary: VocabularyWord[];
-  sentenceAnalyses: SentenceAnalysis[];
-}
-
-interface Quiz {
-  id: number;
-  question: string;
-  options: string[];
-  answer: string;
-  solution: string;
-}
-
-interface Synonym {
-  id: number;
-  english: string;
-  hindi: string;
-  englishSynonyms: string[];
-}
-
-interface OneWordSub {
-  id: number;
-  word: string;
-  hindi: string;
-  meaning: string;
-}
-
-interface Idiom {
-  id: number;
-  phrase: string;
-  hindi: string;
-  meaning: string;
-}
-
-interface ClozeQuestion {
-  id: string;
-  options: string[];
-  answer: string;
-  solution: string;
-}
-
-interface ClozeTest {
-  title: string;
-  passage: string;
-  questions: ClozeQuestion[];
-}
-
-interface ParaJumble {
-  id: number;
-  sentences: string[];
-  options: string[];
-  answer: string;
-  solution: string;
-}
-
-interface EditorialData {
-  articles: Article[];
-  articleQuizzes: Record<string, Quiz[]>;
-  synonyms: Synonym[];
-  oneWordSubstitutions: OneWordSub[];
-  idioms: Idiom[];
-  clozeTests: ClozeTest[];
-  paraJumbles: ParaJumble[];
 }
 
 interface EditorialViewerProps {
@@ -100,767 +30,75 @@ interface EditorialViewerProps {
   isMobile?: boolean;
 }
 
-// Text-to-Speech utility
-const speakWord = (text: string) => {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.8;
-    window.speechSynthesis.speak(utterance);
-  }
-};
-
-// Word Popover Component with Speaker
-const WordPopover = ({ word, hindi, definition, children }: { word: string; hindi: string; definition: string; children: React.ReactNode }) => {
-  const [open, setOpen] = useState(false);
-  
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <span 
-          className="text-red-600 dark:text-red-400 font-semibold cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors px-1 rounded"
-          onClick={() => setOpen(true)}
-        >
-          {children}
-        </span>
-      </PopoverTrigger>
-      <PopoverContent className="w-[95vw] sm:w-80 max-w-sm p-3 rounded-lg max-h-[60vh] overflow-y-auto">
-        <button 
-          onClick={() => setOpen(false)}
-          className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
-        >
-          ×
-        </button>
-        <div className="flex items-center gap-2">
-          <h4 className="font-bold text-lg text-slate-900 dark:text-slate-100">{word}</h4>
-          <button 
-            onClick={() => speakWord(word)}
-            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-blue-600"
-            title="Listen to pronunciation"
-          >
-            <Volume2 className="h-4 w-4" />
-          </button>
-        </div>
-        <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">{hindi}</p>
-        <p className="text-slate-600 dark:text-slate-300 text-sm mt-2">{definition}</p>
-      </PopoverContent>
-    </Popover>
-  );
-};
-
-// Sentence Translation Popover - appears at START of sentence
-const SentencePopover = ({ sentence, explanation }: { sentence: string; explanation: string }) => {
-  const [open, setOpen] = useState(false);
-  
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button 
-          className="inline-flex items-center justify-center mr-1 text-lg align-middle hover:scale-110 transition-transform"
-          onClick={() => setOpen(true)}
-          title="See Hindi explanation"
-        >
-          📖
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[95vw] sm:w-96 max-w-md p-3 rounded-lg max-h-[60vh] overflow-y-auto">
-        <button 
-          onClick={() => setOpen(false)}
-          className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
-        >
-          ×
-        </button>
-        <p className="text-slate-800 dark:text-slate-200 font-medium text-sm italic mb-3">"{sentence}"</p>
-        <div className="border-t pt-3">
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
-            <span className="font-semibold text-amber-600">➡️ हिंदी:</span> {explanation}
-          </p>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-};
-
-// Article Section Component
-const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz[] }) => {
-  const [showTranslation, setShowTranslation] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  // Generate FAQ Schema for Vocabulary
-  const generateFaqSchema = () => {
-    if (!article.vocabulary || article.vocabulary.length === 0) return null;
-    
-    return {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": article.vocabulary.map(v => ({
-        "@type": "Question",
-        "name": `What is the meaning of "${v.word}" in Hindi?`,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": `The Hindi meaning of "${v.word}" is "${v.hindi}". Definition: ${v.definition}`
-        }
-      }))
-    };
-  };
-
-  
-  // Find sentence analysis for a given sentence
-  const findSentenceAnalysis = (text: string): SentenceAnalysis | undefined => {
-    return article.sentenceAnalyses?.find(sa => text.includes(sa.sentence.substring(0, 50)));
-  };
-  
-  // Split text into sentences
-  const splitIntoSentences = (text: string): string[] => {
-    return text.match(/[^.!?]+[.!?]+/g) || [text];
-  };
-  
-  // Highlight vocabulary words in text
-  const highlightText = (text: string, vocabulary: VocabularyWord[]) => {
-    const words = text.split(/(\s+)/);
-    
-    return words.map((word, i) => {
-      const cleanWord = word.replace(/[.,!?;:'"()]/g, '').toLowerCase();
-      const vocabItem = vocabulary.find(v => v.word.toLowerCase() === cleanWord);
-      
-      if (vocabItem) {
-        return (
-          <WordPopover key={i} word={vocabItem.word} hindi={vocabItem.hindi} definition={vocabItem.definition}>
-            {word}
-          </WordPopover>
-        );
-      }
-      return word;
-    });
-  };
-
-  // Render text with sentence-by-sentence book icons at START
-  const renderTextWithTranslations = () => {
-    const sentences = splitIntoSentences(article.text);
-    
-    return sentences.map((sentence, idx) => {
-      const analysis = article.sentenceAnalyses?.find(sa => 
-        sentence.trim().includes(sa.sentence.substring(0, 40)) || 
-        sa.sentence.includes(sentence.trim().substring(0, 40))
-      );
-      
-      return (
-        <span key={idx}>
-          {analysis && (
-            <SentencePopover sentence={analysis.sentence} explanation={analysis.explanation} />
-          )}
-          {highlightText(sentence, article.vocabulary)}
-        </span>
-      );
-    });
-  };
-
-  return (
-    <div className="page bg-white dark:bg-slate-800 p-2 sm:p-6 rounded-lg shadow-sm mb-2 w-full">
-      
-      {/* Dynamic SEO for this specific article */}
-      {article && (
-        <SEO 
-          title={`${article.title} - The Hindu Editorial Vocabulary`}
-          description={`Read the daily editorial vocabulary and meaning for: ${article.title}. Enhance your reading comprehension and prepare for exams with Dailygraph.`}
-          keywords={`Dailygraph, ${article.title}, vocabulary, editorial, english to hindi, reading comprehension`}
-          schema={generateFaqSchema() || undefined}
-        />
-      )}
-      
-      {/* Article Header with Take Quiz button */}
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <h2 className="font-serif text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-          {article.title}
-        </h2>
-        {quizzes && quizzes.length > 0 && (
-          <Button 
-            onClick={() => setShowQuiz(true)}
-            className="bg-red-500 hover:bg-red-600 text-white text-sm shrink-0"
-            size="sm"
-          >
-            📝 Take Quiz
-          </Button>
-        )}
-      </div>
-      
-      {/* Article Text with Book Icons at START of sentences */}
-      <div className="prose prose-slate dark:prose-invert max-w-none mb-4">
-        <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-justify text-base font-medium">
-          {renderTextWithTranslations()}
-        </p>
-      </div>
-      
-      {/* Hindi Translation Toggle */}
-      <div className="mt-4">
-        <Button 
-          variant="outline" 
-          onClick={() => setShowTranslation(!showTranslation)}
-          className="w-full justify-between"
-        >
-          <span>📖 Full Hindi Translation</span>
-          {showTranslation ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
-        {showTranslation && (
-          <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
-            <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-justify">
-              {article.fullTranslationHindi}
-            </p>
-          </div>
-        )}
-      </div>
-      
-      {/* Difficult Words Section - matching reference style */}
-      {article.vocabulary && article.vocabulary.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-center font-serif font-bold text-xl text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-wide">
-            Difficult Words
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-            {article.vocabulary.map((v, i) => (
-              <div key={i} className="py-2">
-                <div className="flex items-start gap-1 flex-wrap">
-                  <span className="font-bold text-red-600 dark:text-red-400">{i + 1}. {v.word}</span>
-                  <button 
-                    onClick={() => speakWord(v.word)}
-                    className="p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600"
-                    title="Listen"
-                  >
-                    <Volume2 className="h-3 w-3" />
-                  </button>
-                  <span className="text-red-600 dark:text-red-400">({v.hindi}):</span>
-                  <span className="text-slate-700 dark:text-slate-300 font-medium">{v.definition}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quiz Modal - Reading Comprehension style */}
-      {showQuiz && quizzes && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-auto p-6 relative">
-            <button 
-              onClick={() => { setShowQuiz(false); setIsSubmitted(false); setSelectedAnswers({}); }} 
-              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 text-2xl font-light"
-            >
-              ×
-            </button>
-            
-            <h3 className="text-center font-serif font-bold text-2xl text-slate-700 dark:text-slate-200 mb-6">
-              Reading Comprehension
-            </h3>
-            
-            <div className="space-y-6">
-              {quizzes.map((q) => (
-                <div key={q.id} className="border-b border-slate-200 dark:border-slate-700 pb-6">
-                  <p className="font-bold text-slate-900 dark:text-slate-100 mb-4">
-                    {q.id}. {q.question}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {q.options.map((opt, oi) => {
-                      const isSelected = selectedAnswers[q.id] === opt;
-                      const isCorrect = opt === q.answer;
-                      let bgClass = "bg-slate-50 dark:bg-slate-700/50";
-                      
-                      if (isSubmitted) {
-                        if (isCorrect) bgClass = "bg-green-100 dark:bg-green-900/50";
-                        else if (isSelected) bgClass = "bg-red-100 dark:bg-red-900/50";
-                      } else if (isSelected) {
-                        bgClass = "bg-blue-50 dark:bg-blue-900/30";
-                      }
-                      
-                      return (
-                        <label 
-                          key={oi} 
-                          className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-colors ${bgClass} hover:bg-slate-100 dark:hover:bg-slate-600/50`}
-                        >
-                          <input
-                            type="radio"
-                            name={`quiz-${q.id}`}
-                            value={opt}
-                            checked={isSelected}
-                            disabled={isSubmitted}
-                            onChange={() => setSelectedAnswers(prev => ({ ...prev, [q.id]: opt }))}
-                            className="mt-1 h-4 w-4 text-blue-600 border-slate-300"
-                          />
-                          <span className="text-slate-700 dark:text-slate-200 text-sm">{opt}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                  {isSubmitted && (
-                    <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded">
-                      💡 {q.solution}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-6 flex justify-center gap-3">
-              {!isSubmitted ? (
-                <Button onClick={() => setIsSubmitted(true)} className="bg-green-600 hover:bg-green-700 px-8">
-                  Submit
-                </Button>
-              ) : (
-                <Button onClick={() => { setIsSubmitted(false); setSelectedAnswers({}); }} variant="outline">
-                  Try Again
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Synonyms Section - matching reference with blue header
-const SynonymsSection = ({ synonyms }: { synonyms: Synonym[] }) => (
-  <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-6 overflow-hidden">
-    <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white px-4 py-3">
-      <h2 className="font-serif font-bold text-lg uppercase tracking-wide">Synonyms</h2>
-    </div>
-    <div className="p-4">
-      <div className="space-y-3">
-        {synonyms.map((s) => (
-          <div key={s.id} className="flex items-start gap-2">
-            <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">{s.id}.</span>
-            <div>
-              <span className="font-bold text-blue-700 dark:text-blue-400 uppercase">{s.english}</span>
-              <span className="text-slate-600 dark:text-slate-400 ml-2">({s.hindi})</span>
-              <p className="text-slate-600 dark:text-slate-400 uppercase text-sm">
-                {s.englishSynonyms.join(", ")}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-// One Word Substitutions Section - matching reference with blue header
-const OneWordSection = ({ items }: { items: OneWordSub[] }) => (
-  <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-6 overflow-hidden">
-    <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white px-4 py-3">
-      <h2 className="font-serif font-bold text-lg uppercase tracking-wide">One-Word Substitution</h2>
-    </div>
-    <div className="p-4">
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div key={item.id} className="flex items-start gap-2">
-            <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">{item.id}.</span>
-            <div>
-              <span className="font-bold text-blue-700 dark:text-blue-400 uppercase">{item.word}</span>
-              <span className="text-slate-600 dark:text-slate-400 ml-2">({item.hindi})</span>
-              <p className="text-slate-700 dark:text-slate-300 text-sm">{item.meaning}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-// Idioms Section - matching reference with blue header
-const IdiomsSection = ({ idioms }: { idioms: Idiom[] }) => (
-  <div className="page bg-white dark:bg-slate-800 rounded-lg shadow-sm mb-6 overflow-hidden">
-    <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white px-4 py-3">
-      <h2 className="font-serif font-bold text-lg uppercase tracking-wide">Idioms & Phrases</h2>
-    </div>
-    <div className="p-4">
-      <div className="space-y-3">
-        {idioms.map((idiom) => (
-          <div key={idiom.id} className="flex items-start gap-2">
-            <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">{idiom.id}.</span>
-            <div>
-              <span className="font-bold text-blue-700 dark:text-blue-400 uppercase">{idiom.phrase}</span>
-              <span className="text-slate-600 dark:text-slate-400 ml-2">({idiom.hindi})</span>
-              <p className="text-slate-700 dark:text-slate-300 text-sm">{idiom.meaning}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-// Cloze Test Section
-const ClozeTestSection = ({ clozeTests }: { clozeTests: ClozeTest[] }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  
-  if (!clozeTests || clozeTests.length === 0) return null;
-  
-  const test = clozeTests[0]; // Show first cloze test
-  
-  return (
-    <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6 cloze-test-card">
-      <h2 className="font-serif text-xl font-bold text-slate-900 dark:text-slate-100 border-b-2 border-slate-200 dark:border-slate-700 pb-3 mb-4">
-        📝 {test.title}
-      </h2>
-      
-      {/* Passage */}
-      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg mb-4">
-        <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-justify">
-          {test.passage}
-        </p>
-      </div>
-      
-      {/* Questions Navigation */}
-      <div className="flex items-center justify-between mb-4">
-        <Button 
-          variant="outline" 
-          size="sm"
-          disabled={currentQuestion === 0}
-          onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-slate-600 dark:text-slate-400">
-          Question {currentQuestion + 1} of {test.questions.length}
-        </span>
-        <Button 
-          variant="outline"
-          size="sm"
-          disabled={currentQuestion === test.questions.length - 1}
-          onClick={() => setCurrentQuestion(Math.min(test.questions.length - 1, currentQuestion + 1))}
-        >
-          Next
-        </Button>
-      </div>
-      
-      {/* Current Question */}
-      {test.questions.map((q, i) => (
-        <div key={q.id} className={`quiz-question ${i !== currentQuestion ? 'hidden' : ''}`}>
-          <p className="font-semibold text-slate-900 dark:text-slate-100 mb-3">
-            Blank ({q.id}):
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {q.options.map((opt, oi) => {
-              const isSelected = selectedAnswers[q.id] === opt;
-              const answerNum = q.answer.match(/^\d+/)?.[0];
-              const isCorrect = answerNum === String(oi + 1);
-              let className = "flex items-center gap-3 p-3 rounded-md cursor-pointer transition-colors ";
-              
-              if (isSubmitted) {
-                if (isCorrect) className += "bg-green-100 dark:bg-green-900";
-                else if (isSelected && !isCorrect) className += "bg-red-100 dark:bg-red-900";
-                else className += "bg-slate-100 dark:bg-slate-700";
-              } else {
-                className += isSelected ? "bg-blue-100 dark:bg-blue-900" : "hover:bg-slate-200 dark:hover:bg-slate-700";
-              }
-              
-              return (
-                <label key={oi} className={className}>
-                  <input
-                    type="radio"
-                    name={`cloze-${q.id}`}
-                    value={opt}
-                    checked={isSelected}
-                    disabled={isSubmitted}
-                    onChange={() => setSelectedAnswers(prev => ({ ...prev, [q.id]: opt }))}
-                    className="form-radio"
-                  />
-                  <span className="text-slate-800 dark:text-slate-200">{opt}</span>
-                </label>
-              );
-            })}
-          </div>
-          {isSubmitted && (
-            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 p-3 rounded">
-              💡 {q.solution}
-            </p>
-          )}
-        </div>
-      ))}
-      
-      {/* Submit / Reset */}
-      <div className="mt-4 flex gap-2">
-        {!isSubmitted ? (
-          <Button onClick={() => setIsSubmitted(true)} className="bg-green-600 hover:bg-green-700">
-            Submit
-          </Button>
-        ) : (
-          <Button onClick={() => { setIsSubmitted(false); setSelectedAnswers({}); setCurrentQuestion(0); }} variant="outline">
-            Try Again
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Para Jumble Section
-const ParaJumbleSection = ({ paraJumbles }: { paraJumbles: ParaJumble[] }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  
-  if (!paraJumbles || paraJumbles.length === 0) return null;
-  
-  return (
-    <div className="page bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm mb-6 parajumble-card">
-      <h2 className="font-serif text-xl font-bold text-slate-900 dark:text-slate-100 border-b-2 border-slate-200 dark:border-slate-700 pb-3 mb-4">
-        🔀 Para Jumbles
-      </h2>
-      
-      {/* Questions Navigation */}
-      <div className="flex items-center justify-between mb-4">
-        <Button 
-          variant="outline" 
-          size="sm"
-          disabled={currentQuestion === 0}
-          onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-slate-600 dark:text-slate-400">
-          Question {currentQuestion + 1} of {paraJumbles.length}
-        </span>
-        <Button 
-          variant="outline"
-          size="sm"
-          disabled={currentQuestion === paraJumbles.length - 1}
-          onClick={() => setCurrentQuestion(Math.min(paraJumbles.length - 1, currentQuestion + 1))}
-        >
-          Next
-        </Button>
-      </div>
-      
-      {paraJumbles.map((pj, i) => (
-        <div key={pj.id} className={`quiz-question ${i !== currentQuestion ? 'hidden' : ''}`}>
-          {/* Sentences */}
-          <div className="space-y-2 mb-4">
-            {pj.sentences.map((s, si) => (
-              <div key={si} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border-l-4 border-blue-500">
-                <p className="text-slate-800 dark:text-slate-200">{s}</p>
-              </div>
-            ))}
-          </div>
-          
-          {/* Options */}
-          <p className="font-semibold text-slate-900 dark:text-slate-100 mb-3">
-            Choose the correct order:
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {pj.options.map((opt, oi) => {
-              const isSelected = selectedAnswers[pj.id] === opt;
-              const correctMatch = pj.answer.match(/\(([a-z])\)/i);
-              const correctLetter = correctMatch?.[1]?.toLowerCase();
-              const optionLetter = String.fromCharCode(97 + oi);
-              const isCorrect = optionLetter === correctLetter;
-              
-              let className = "flex items-center gap-3 p-3 rounded-md cursor-pointer transition-colors ";
-              
-              if (isSubmitted) {
-                if (isCorrect) className += "bg-green-100 dark:bg-green-900";
-                else if (isSelected && !isCorrect) className += "bg-red-100 dark:bg-red-900";
-                else className += "bg-slate-100 dark:bg-slate-700";
-              } else {
-                className += isSelected ? "bg-blue-100 dark:bg-blue-900" : "hover:bg-slate-200 dark:hover:bg-slate-700";
-              }
-              
-              return (
-                <label key={oi} className={className}>
-                  <input
-                    type="radio"
-                    name={`pj-${pj.id}`}
-                    value={opt}
-                    checked={isSelected}
-                    disabled={isSubmitted}
-                    onChange={() => setSelectedAnswers(prev => ({ ...prev, [pj.id]: opt }))}
-                    className="form-radio"
-                  />
-                  <span className="text-slate-800 dark:text-slate-200">({String.fromCharCode(97 + oi)}) {opt}</span>
-                </label>
-              );
-            })}
-          </div>
-          
-          {isSubmitted && (
-            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 p-3 rounded">
-              💡 {pj.solution}
-            </p>
-          )}
-        </div>
-      ))}
-      
-      {/* Submit / Reset */}
-      <div className="mt-4 flex gap-2">
-        {!isSubmitted ? (
-          <Button onClick={() => setIsSubmitted(true)} className="bg-green-600 hover:bg-green-700">
-            Submit
-          </Button>
-        ) : (
-          <Button onClick={() => { setIsSubmitted(false); setSelectedAnswers({}); setCurrentQuestion(0); }} variant="outline">
-            Try Again
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-
-// Weekly Vocabulary Aggregator
-const WeeklyVocabulary = ({ currentDate }: { currentDate: string }) => {
-  const [vocabData, setVocabData] = useState<{date: string, words: VocabularyWord[]}[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchWeeklyVocab = async () => {
-      setLoading(true);
-      try {
-        const endDate = new Date(currentDate);
-        const startDate = new Date(currentDate);
-        startDate.setDate(endDate.getDate() - 6);
-        
-        const startStr = format(startDate, 'yyyy-MM-dd');
-        const endStr = format(endDate, 'yyyy-MM-dd');
-        
-        const { data, error } = await supabase
-          .from("daily_graphs")
-          .select("upload_date, html_content")
-          .gte("upload_date", startStr)
-          .lte("upload_date", endStr)
-          .order("upload_date", { ascending: false });
-          
-        if (error) throw error;
-        
-        const aggregated: {date: string, words: VocabularyWord[]}[] = [];
-        
-        data?.forEach(row => {
-          try {
-             // It could be string or object
-             const parsed = typeof row.html_content === 'string' 
-               ? JSON.parse(row.html_content) 
-               : row.html_content;
-             
-             let dayWords: VocabularyWord[] = [];
-             if (parsed && parsed.articles) {
-               parsed.articles.forEach((a: any) => {
-                 if (a.vocabulary) {
-                   dayWords = [...dayWords, ...a.vocabulary];
-                 }
-               });
-             }
-             if (dayWords.length > 0) {
-               aggregated.push({
-                 date: row.upload_date,
-                 words: dayWords
-               });
-             }
-          } catch (e) {
-            // ignore parse errors for old html data
-          }
-        });
-        
-        setVocabData(aggregated);
-      } catch (err) {
-        console.error("Failed to fetch weekly vocab", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchWeeklyVocab();
-  }, [currentDate]);
-
-  if (loading) return <div className="p-4 flex justify-center"><Loader2 className="animate-spin text-blue-500 h-6 w-6" /></div>;
-  if (vocabData.length === 0) return null;
-
-  return (
-    <div className="page bg-white dark:bg-slate-800 rounded-none sm:rounded-lg shadow-sm mb-0 overflow-hidden mt-6 border border-red-100 dark:border-red-900 w-full">
-      <div className="bg-gradient-to-r from-red-600 to-red-400 text-white px-4 py-3">
-        <h2 className="font-serif font-bold text-xl uppercase tracking-wide flex items-center gap-2">
-          📚 Weekly Vocabulary Revision
-        </h2>
-        <p className="text-red-100 text-sm mt-1">Reviewing words from the last 6 days</p>
-      </div>
-      <div className="p-4 sm:p-6">
-        {vocabData.map((day, idx) => (
-          <div key={idx} className="mb-8 last:mb-0 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
-            <h3 className="font-bold text-slate-800 dark:text-slate-200 border-b-2 border-red-200 dark:border-red-800 pb-2 mb-4 text-lg">
-              {format(new Date(day.date), "EEEE, MMM d, yyyy")}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-              {day.words.map((v, i) => (
-                <div key={i} className="py-2 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 rounded transition-colors">
-                  <div className="flex items-start gap-2 flex-wrap">
-                    <span className="font-bold text-red-600 dark:text-red-400 min-w-[20px]">{i + 1}.</span>
-                    <span className="font-bold text-slate-900 dark:text-slate-100">{v.word}</span>
-                    <button 
-                      onClick={() => speakWord(v.word)}
-                      className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600 -mt-0.5"
-                      title="Listen"
-                    >
-                      <Volume2 className="h-3.5 w-3.5" />
-                    </button>
-                    <span className="text-red-600 dark:text-red-400 font-medium">({v.hindi}):</span>
-                    <span className="text-slate-700 dark:text-slate-300">{v.definition}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Main Editorial Viewer Component
-
-const EditorialViewer = ({
+export default function EditorialViewer({
   date,
   zoom,
   onZoomChange,
   onDateChange,
   onLoadSuccess,
-  isMobile = false
-}: EditorialViewerProps) => {
-  const [data, setData] = useState<EditorialData | null>(null);
+  isMobile
+}: EditorialViewerProps) {
+  const [data, setData] = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [headerHidden, setHeaderHidden] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [learnedWords, setLearnedWords] = useState<string[]>([]);
+  const { theme, setTheme } = useTheme();
 
+  // Popup state
+  const [popupWord, setPopupWord] = useState<VocabularyWord | null>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  // Load learned words
   useEffect(() => {
-    const loadContent = async () => {
+    const saved = localStorage.getItem('learnedWords');
+    if (saved) {
+      try {
+        setLearnedWords(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse learned words", e);
+      }
+    }
+  }, []);
+
+  // Fetch data
+  useEffect(() => {
+    const fetchGraph = async () => {
       setLoading(true);
       setError(null);
-      
       try {
         const { data: dbData, error: dbError } = await supabase
           .from("daily_graphs")
           .select("html_content")
           .eq("upload_date", date)
           .maybeSingle();
-        
+
         if (dbError) throw dbError;
-        
+
         if (dbData && dbData.html_content) {
-          // Try to parse as JSON first
+          let parsedData: GraphData | null = null;
+          
           try {
-            const contentStr = typeof dbData.html_content === 'string' 
-              ? dbData.html_content 
-              : JSON.stringify(dbData.html_content);
-            const jsonData = typeof dbData.html_content === 'string' 
+            parsedData = typeof dbData.html_content === 'string' 
               ? JSON.parse(dbData.html_content) 
               : dbData.html_content;
-            setData(jsonData);
+          } catch (e) {
+            // Check for __INITIAL_DATA__ fallback
+            if (typeof dbData.html_content === 'string' && dbData.html_content.includes('__INITIAL_DATA__')) {
+              try {
+                const match = dbData.html_content.match(/window\.__INITIAL_DATA__\s*=\s*(\{[\s\S]*?\});\s*<\/script>/);
+                if (match && match[1]) {
+                  parsedData = JSON.parse(match[1]);
+                }
+              } catch (e2) {}
+            }
+          }
+
+          if (parsedData && parsedData.text && parsedData.vocabulary) {
+            setData(parsedData);
             onLoadSuccess?.();
-          } catch {
-            // If not JSON, it's HTML - show error for now
-            setError("Content is in HTML format. Please upload JSON for the new viewer.");
+          } else {
+            setError("Invalid JSON format found for this date.");
           }
         } else {
           setError("No content found for this date");
@@ -871,126 +109,182 @@ const EditorialViewer = ({
         setLoading(false);
       }
     };
+
+    fetchGraph();
+  }, [date, onLoadSuccess]);
+
+  // Process article body to add interactive vocabulary words
+  const renderProcessedBody = () => {
+    if (!data) return null;
     
-    loadContent();
-  }, [date]);
+    // Sort words by length descending so longer phrases get matched first
+    const sortedVocab = [...data.vocabulary].sort((a, b) => b.word.length - a.word.length);
+    
+    let processedHtml = data.text;
 
-  const currentDate = new Date(date);
+    sortedVocab.forEach((vocab) => {
+      // Create a case-insensitive regex that ensures whole word match, accounting for punctuation
+      const escapedWord = vocab.word.replace(/[.*+?^${}()|[\]\\]/g, '\$&');
+      const regex = new RegExp(`\\\\b(${escapedWord})\\\\b`, 'gi');
+      
+      const isLearned = learnedWords.includes(vocab.word.toLowerCase());
+      const classNames = isLearned ? 'premium-vocab-word learned' : 'premium-vocab-word';
+      
+      processedHtml = processedHtml.replace(regex, (match) => {
+        // We use a custom attribute to safely store the word ID for the click handler
+        return `<span class="${classNames}" data-vocab-id="${vocab.word.toLowerCase()}">${match}</span>`;
+      });
+    });
 
-  // Header Component
-  const Header = () => (
-    <header className={`bg-white dark:bg-slate-900 p-4 sm:p-5 border-b-2 border-slate-200 dark:border-slate-700 ${headerHidden ? 'hidden' : ''}`}>
-      <div className="flex items-center justify-between w-full flex-nowrap overflow-x-auto overflow-y-hidden no-scrollbar pb-1 gap-2 sm:gap-4">
-        <div className="flex-1 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="h-8 w-8"
-          >
-            {isDarkMode ? "☀️" : "🌙"}
-          </Button>
-        </div>
-        <div className="flex-1 text-center">
-          <h1 className="text-xl sm:text-4xl font-bold font-serif text-slate-900 dark:text-slate-100 whitespace-nowrap">
-            The Dailygraph
-          </h1>
-        </div>
-        <div className="flex justify-end items-center gap-1 sm:gap-2 shrink-0">
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onZoomChange(Math.max(50, zoom - 10))}
-              className="h-6 w-6 sm:h-7 sm:w-7"
-            >
-              <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
-            </Button>
-            <span className="text-xs sm:text-sm font-medium w-8 text-center">
-              {zoom}%
-            </span>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onZoomChange(Math.min(200, zoom + 10))}
-              className="h-6 w-6 sm:h-7 sm:w-7"
-            >
-              <ZoomIn className="h-3 w-3 sm:h-4 sm:w-4" />
-            </Button>
-          </div>
-          
-          {/* Date Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 sm:h-9 px-2 sm:px-3 bg-slate-100 dark:bg-slate-800 border-none">
-                <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="text-xs sm:text-sm">{format(currentDate, "MMM d")}</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={currentDate}
-                onSelect={(d) => d && onDateChange(d)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          
-          {/* Telegram Link */}
-          <a 
-            href="https://t.me/thedailygraph" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center text-blue-600 hover:opacity-80 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-              <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.62 12c-.88-.25-.89-1.02.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.58c-.28 1.13-1.04 1.4-1.74.88L14.25 16l-4.12 3.9c-.78.72-1.4.34-1.63-.55z" />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </header>
-  );
+    // Add book icons to paragraphs
+    const paragraphs = processedHtml.split('</p>').filter(p => p.trim());
+    processedHtml = paragraphs.map(p => {
+      if (p.trim() && p.includes('<p>')) {
+        return p + ` <svg class="premium-book-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></p>`;
+      }
+      return p;
+    }).join('');
 
-  // Hide Header Toggle
-  const HeaderToggle = () => (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => setHeaderHidden(!headerHidden)}
-      className="fixed top-2 left-2 z-50 h-6 w-6 p-0 bg-background/80"
-    >
-      {headerHidden ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-    </Button>
-  );
+    return processedHtml;
+  };
+
+  // Add click listeners to vocabulary words
+  useEffect(() => {
+    if (!data) return;
+
+    const handleWordClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('premium-vocab-word')) {
+        const wordId = target.getAttribute('data-vocab-id');
+        if (wordId) {
+          const vocabEntry = data.vocabulary.find(v => v.word.toLowerCase() === wordId);
+          if (vocabEntry) {
+            setPopupWord(vocabEntry);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('click', handleWordClick);
+    return () => document.removeEventListener('click', handleWordClick);
+  }, [data]);
+
+  const toggleLearned = (word: string) => {
+    const w = word.toLowerCase();
+    const newLearned = learnedWords.includes(w)
+      ? learnedWords.filter(item => item !== w)
+      : [...learnedWords, w];
+    
+    setLearnedWords(newLearned);
+    localStorage.setItem('learnedWords', JSON.stringify(newLearned));
+  };
+
+  const playAudio = (word: string) => {
+    setIsAudioPlaying(true);
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    utterance.onend = () => {
+      setTimeout(() => setIsAudioPlaying(false), 300);
+    };
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const closePopup = () => setPopupWord(null);
+
+  // Calculate progress
+  const totalWords = data?.vocabulary.length || 0;
+  const learnedCount = data ? data.vocabulary.filter(v => learnedWords.includes(v.word.toLowerCase())).length : 0;
+  const progressPercent = totalWords > 0 ? Math.round((learnedCount / totalWords) * 100) : 0;
+  
+  const radius = 18;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (progressPercent / 100) * circumference;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="premium-container flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-muted mb-4"></div>
+          <div className="h-4 w-32 bg-muted rounded"></div>
+        </div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className={isDarkMode ? 'dark' : ''}>
-        <div className="h-full bg-slate-100 dark:bg-slate-900">
-          <SEO title="Content Not Found | Dailygraph" noIndex={true} />
-          <Header />
-          <div className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <p className="text-slate-600 dark:text-slate-400 mb-4">{error || "No content available"}</p>
+      <div className="premium-container flex items-center justify-center p-4">
+        <div className="text-center p-6 bg-card rounded-lg border border-red-100 shadow-sm">
+          <h2 className="text-xl font-bold text-red-600 mb-2">Could not load content</h2>
+          <p className="text-muted-foreground">{error || "Data unavailable"}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentDate = new Date(date);
+
+  return (
+    <div className={`premium-container ${theme === 'dark' ? 'dark' : ''}`}>
+      <div className="premium-ambient-bg"></div>
+
+      <div className="premium-app-container">
+        {/* Header */}
+        <header className="premium-header">
+          <div className="premium-header-content">
+            <div className="premium-brand">
+              <div className="premium-brand-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              </div>
+              <span className="premium-brand-text">The Dailygraph</span>
+            </div>
+            
+            <div className="premium-header-actions">
+              <button 
+                className="premium-icon-btn" 
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                title="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </button>
+              
+              <div className="premium-progress-ring-container" title="Daily progress">
+                <svg className="premium-progress-ring-svg" width="44" height="44">
+                  <circle className="premium-progress-ring-bg" cx="22" cy="22" r="18"/>
+                  <circle 
+                    className="premium-progress-ring-fill" 
+                    cx="22" cy="22" r="18" 
+                    strokeDasharray={circumference} 
+                    strokeDashoffset={offset}
+                  />
+                </svg>
+                <span className="premium-progress-text">{progressPercent}%</span>
+              </div>
+              
+              <button 
+                className="premium-icon-btn" 
+                onClick={() => onZoomChange(zoom >= 140 ? 80 : zoom + 20)}
+                title="Adjust text size"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+              </button>
+              
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline">
-                    <CalendarIcon className="h-4 w-4 mr-2" />
-                    Select Another Date
-                  </Button>
+                  <button className="premium-icon-btn" title="Calendar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="end">
                   <Calendar
                     mode="single"
                     selected={currentDate}
@@ -1001,58 +295,96 @@ const EditorialViewer = ({
               </Popover>
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
+        </header>
 
-  return (
-    <div className={isDarkMode ? 'dark' : ''}>
-      <div className="h-full bg-slate-100 dark:bg-slate-900">
-        <HeaderToggle />
-        <Header />
-        
-        <main 
-          className="max-w-4xl mx-auto px-0 py-2 sm:p-4 transition-transform origin-top w-full"
-          style={{ transform: `scale(${zoom / 100})` }}
-        >
-          {/* Articles */}
-          {data.articles?.map((article) => (
-            <ArticleSection 
-              key={article.id} 
-              article={article} 
-              quizzes={data.articleQuizzes?.[article.id]}
+        {/* Main Content */}
+        <main className="premium-main-content">
+          <article className="premium-article-card" style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center' }}>
+            <div className="premium-article-meta">
+              <span className="premium-category-tag">Editorial</span>
+              <span className="premium-read-time">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {Math.max(1, Math.ceil(data.text.split(' ').length / 200))} min read
+              </span>
+            </div>
+
+            <h1 className="premium-article-title">{data.title}</h1>
+
+            <div 
+              className="premium-article-body" 
+              dangerouslySetInnerHTML={{ __html: renderProcessedBody() || '' }} 
             />
-          ))}
-          
-          {/* Synonyms */}
-          {data.synonyms && data.synonyms.length > 0 && (
-            <SynonymsSection synonyms={data.synonyms} />
-          )}
-          
-          {/* One Word Substitutions */}
-          {data.oneWordSubstitutions && data.oneWordSubstitutions.length > 0 && (
-            <OneWordSection items={data.oneWordSubstitutions} />
-          )}
-          
-          {/* Idioms */}
-          {data.idioms && data.idioms.length > 0 && (
-            <IdiomsSection idioms={data.idioms} />
-          )}
-          
-          {/* Cloze Tests */}
-          {data.clozeTests && data.clozeTests.length > 0 && (
-            <ClozeTestSection clozeTests={data.clozeTests} />
-          )}
-          
-          {/* Para Jumbles */}
-          {data.paraJumbles && data.paraJumbles.length > 0 && (
-            <ParaJumbleSection paraJumbles={data.paraJumbles} />
-          )}
+          </article>
         </main>
+
+        {/* Definition Popup */}
+        <div 
+          className={`premium-popup-overlay ${popupWord ? 'active' : ''}`} 
+          onClick={closePopup}
+        ></div>
+        
+        <div className={`premium-definition-popup ${popupWord ? 'active' : ''}`} ref={popupRef}>
+          {popupWord && (
+            <>
+              <div className="premium-popup-header">
+                <div className="premium-popup-word-section">
+                  <h2 className="premium-popup-word">{popupWord.word}</h2>
+                  <button 
+                    className={`premium-audio-btn ${isAudioPlaying ? 'playing' : ''}`}
+                    onClick={() => playAudio(popupWord.word)}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <div className="premium-sound-waves">
+                      <div className="premium-wave-bar"></div>
+                      <div className="premium-wave-bar"></div>
+                      <div className="premium-wave-bar"></div>
+                    </div>
+                  </button>
+                </div>
+                <button className="premium-close-btn" onClick={closePopup}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+
+              <div className="premium-popup-divider"></div>
+
+              <div className="premium-translation-section">
+                <div className="premium-translation-label">Hindi Translation</div>
+                <div className="premium-translation-text">{popupWord.hindi}</div>
+              </div>
+
+              <div className="premium-definition-section">
+                <div className="premium-translation-label">Definition</div>
+                <div className="premium-definition-text">{popupWord.definition}</div>
+              </div>
+
+              {popupWord.example && (
+                <div className="premium-example-section">
+                  <div className="premium-example-label">Example</div>
+                  <div className="premium-example-text">{popupWord.example}</div>
+                </div>
+              )}
+
+              <button 
+                className={`premium-mark-learned-btn ${learnedWords.includes(popupWord.word.toLowerCase()) ? 'learned' : ''}`}
+                onClick={() => toggleLearned(popupWord.word)}
+              >
+                {learnedWords.includes(popupWord.word.toLowerCase()) ? (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Learned</span>
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>Mark as Learned</span>
+                  </>
+                )}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
-};
-
-export default EditorialViewer;
+}
