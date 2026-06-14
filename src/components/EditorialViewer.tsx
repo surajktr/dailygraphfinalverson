@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface VocabularyWord {
@@ -444,16 +445,35 @@ export default function EditorialViewer({
                       <div key={vi} className={`dg-vocab-item ${isLearned ? "learned" : ""}`}>
                         <div className="dg-vocab-item-top">
                           <span className="dg-vocab-word-text">{v.word}</span>
-                          <button
-                            className="dg-speak-btn"
-                            title="Speak"
-                            onClick={() => speakWord(v.word)}
-                          >
-                            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" strokeWidth="2"/>
-                            </svg>
-                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              className="dg-speak-btn"
+                              title="Speak"
+                              onClick={() => speakWord(v.word)}
+                            >
+                              <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                              </svg>
+                            </button>
+                            <button
+                              className="dg-save-btn bg-background text-foreground border border-border p-1 rounded-sm hover:bg-secondary cursor-pointer shadow-sm transition-all"
+                              title="Bookmark"
+                              onClick={() => {
+                                const saved = localStorage.getItem('saved_vocab');
+                                const bookmarks = saved ? JSON.parse(saved) : [];
+                                if (!bookmarks.find((b: any) => b.word === v.word)) {
+                                  bookmarks.push({ word: v.word, hindi: v.hindi, definition: v.definition, savedAt: new Date().toISOString() });
+                                  localStorage.setItem('saved_vocab', JSON.stringify(bookmarks));
+                                  toast.success(`${v.word} bookmarked!`);
+                                } else {
+                                  toast.info(`${v.word} is already bookmarked`);
+                                }
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                            </button>
+                          </div>
                           <button
                             className={`dg-learned-pill ${isLearned ? "learned" : ""}`}
                             onClick={() => toggleLearned(v.word)}
