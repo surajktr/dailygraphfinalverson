@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import SEO from "@/components/SEO";
 
 interface VocabularyWord {
   word: string;
@@ -151,6 +152,13 @@ export default function EditorialViewer({
 
           if (parsedData && parsedData.articles && parsedData.articles.length > 0) {
             setArticles(parsedData.articles);
+            const title = parsedData.articles[0].title;
+            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            const currentUrl = new URL(window.location.href);
+            // Don't replace if it's already in the URL
+            if (!currentUrl.pathname.endsWith(slug)) {
+              window.history.replaceState(null, '', `/date/${date}/${slug}`);
+            }
             onLoadSuccess?.();
           } else {
             setError("No content available for this date.");
@@ -279,6 +287,25 @@ export default function EditorialViewer({
       : [...learnedWords, w];
     setLearnedWords(newList);
     localStorage.setItem("learnedWords", JSON.stringify(newList));
+  };
+
+  // Toggle bookmark
+  const toggleBookmark = (v: VocabularyWord) => {
+      const saved = localStorage.getItem('saved_vocab');
+      const bookmarks = saved ? JSON.parse(saved) : [];
+      const isSaved = savedBookmarks.includes(v.word);
+      
+      if (!isSaved) {
+          bookmarks.push({ word: v.word, hindi: v.hindi, definition: v.definition, savedAt: new Date().toISOString() });
+          localStorage.setItem('saved_vocab', JSON.stringify(bookmarks));
+          setSavedBookmarks([...savedBookmarks, v.word]);
+          toast.success(`${v.word} bookmarked!`);
+      } else {
+          const newBookmarks = bookmarks.filter((b: any) => b.word !== v.word);
+          localStorage.setItem('saved_vocab', JSON.stringify(newBookmarks));
+          setSavedBookmarks(savedBookmarks.filter(w => w !== v.word));
+          toast.info(`${v.word} removed from bookmarks`);
+      }
   };
 
   // Play audio with Indian voice
@@ -414,6 +441,11 @@ export default function EditorialViewer({
         </main>
       ) : (
         <main className="dg-main">
+          <SEO 
+            title={`${articles[0].title} | Dailygraph`}
+            description={articles[0].text.substring(0, 160).replace(/<[^>]+>/g, '') + "..."}
+            ogUrl={window.location.href}
+          />
         {articles.map((article, idx) => (
           <section key={idx} className="dg-article">
             {/* Article meta */}
@@ -462,29 +494,19 @@ export default function EditorialViewer({
                               </svg>
                             </button>
                             <button
-                              className="dg-save-btn bg-background text-foreground border border-border p-1 rounded-sm hover:bg-secondary cursor-pointer shadow-sm transition-all"
+                              className={`dg-save-btn bg-background text-foreground border border-border p-1 rounded-sm hover:bg-secondary cursor-pointer shadow-sm transition-all ${savedBookmarks.includes(v.word) ? 'text-red-500' : ''}`}
                               title="Bookmark"
-                              onClick={() => {
-                                const saved = localStorage.getItem('saved_vocab');
-                                const bookmarks = saved ? JSON.parse(saved) : [];
-                                if (!bookmarks.find((b: any) => b.word === v.word)) {
-                                  bookmarks.push({ word: v.word, hindi: v.hindi, definition: v.definition, savedAt: new Date().toISOString() });
-                                  localStorage.setItem('saved_vocab', JSON.stringify(bookmarks));
-                                  toast.success(`${v.word} bookmarked!`);
-                                } else {
-                                  toast.info(`${v.word} is already bookmarked`);
-                                }
-                              }}
+                              onClick={() => toggleBookmark(v)}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={savedBookmarks.includes(v.word) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                             </button>
                           </div>
-                          <button
-                            className={`dg-learned-pill ${isLearned ? "learned" : ""}`}
-                            onClick={() => toggleLearned(v.word)}
-                          >
-                            {isLearned ? "✓ Learned" : "Mark"}
-                          </button>
+                            <button
+                              className={`dg-learned-pill ${isLearned ? "learned" : ""}`}
+                              onClick={() => toggleLearned(v.word)}
+                            >
+                              {isLearned ? "Learned" : "Mark"}
+                            </button>
                         </div>
                         <div className="dg-vocab-hindi">{v.hindi}</div>
                         <div className="dg-vocab-def">{v.definition}</div>
@@ -546,7 +568,7 @@ export default function EditorialViewer({
               onClick={() => toggleLearned(popupWord.word)}
             >
               {learnedWords.includes(popupWord.word.toLowerCase()) ? (
-                <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> Learned ✓</>
+                <>Learned</>
               ) : (
                 <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Mark as Learned</>
               )}

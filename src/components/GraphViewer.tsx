@@ -506,9 +506,8 @@ const GraphViewer = ({
             >
               <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <span className="text-xs sm:text-sm font-medium min-w-[2.5rem] sm:min-w-[3rem] text-center">
-              {isMobile ? zoom + 5 : zoom}%
-            </span>
+              <span className="text-xs sm:text-sm font-medium min-w-[2.5rem] sm:min-w-[3rem] text-center" style={{ display: 'none' }}>
+              </span>
             <Button
               variant="outline"
               size="icon"

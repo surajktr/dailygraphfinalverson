@@ -28,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Viewer />} />
             <Route path="/date/:date" element={<Viewer />} />
+            <Route path="/date/:date/:slug" element={<Viewer />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/about" element={<About />} />

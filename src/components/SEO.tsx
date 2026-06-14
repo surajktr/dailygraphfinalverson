@@ -12,7 +12,7 @@ interface SEOProps {
   schema?: object | object[]; // Support single schema or array of schemas
 }
 
-const defaultImage = "https://storage.googleapis.com/gpt-engineer-file-uploads/UzSD8RN0vxV8yG4nsGmtjwj9YJC3/uploads/1761919607072-Gemini_Generated_Image_ozubhhozubhhozub.png";
+const defaultImage = "https://dailygraph.in/logo.png";
 
 const SEO = ({
   title = "Dailygraph - SSC CGL, CHSL Preparation | News Articles & English Practice",
