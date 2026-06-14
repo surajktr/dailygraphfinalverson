@@ -183,6 +183,27 @@ export default function EditorialViewer({
           .join("");
       }
 
+      // 1. Add book icon before each analyzed sentence FIRST
+      if (article.sentenceAnalyses) {
+        article.sentenceAnalyses.forEach((s) => {
+          if (s.sentence && s.sentence.length > 8) {
+            // Escape the sentence text for use in regex
+            // Also replace spaces with \s+ to handle varying whitespace
+            let escapedSentence = s.sentence.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            escapedSentence = escapedSentence.replace(/\\\s| /g, "\\s+");
+            // Encode translation for data attribute
+            const encodedTranslation = encodeURIComponent(s.explanation);
+            const btnHtml = `<button class="dg-book-btn" data-translation="${encodedTranslation}" type="button" title="Translate sentence"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>`;
+            
+            try {
+              const sentenceRegex = new RegExp("(" + escapedSentence + ")", "i");
+              html = html.replace(sentenceRegex, btnHtml + "$1");
+            } catch {}
+          }
+        });
+      }
+
+      // 2. Wrap vocabulary words with interactive spans SECOND
       // Sort vocabulary words by length (longest first) to avoid partial matches
       const sortedVocab = [...article.vocabulary].sort(
         (a, b) => b.word.length - a.word.length
@@ -190,7 +211,8 @@ export default function EditorialViewer({
 
       sortedVocab.forEach((vocab) => {
         const escaped = vocab.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const regex = new RegExp("\\b(" + escaped + ")\\b", "gi");
+        // (?![^<]*>) prevents replacing text inside HTML tags (like data-translation)
+        const regex = new RegExp("(?![^<]*>)\\b(" + escaped + ")\\b", "gi");
         const isLearned = learnedWords.includes(vocab.word.toLowerCase());
         const cls = isLearned ? "dg-vocab-word learned" : "dg-vocab-word";
 
@@ -199,24 +221,6 @@ export default function EditorialViewer({
           `<span class="${cls}" data-vocab-id="${vocab.word.toLowerCase()}">$1</span>`
         );
       });
-
-      // Add book icon before each analyzed sentence
-      if (article.sentenceAnalyses) {
-        article.sentenceAnalyses.forEach((s) => {
-          if (s.sentence && s.sentence.length > 8) {
-            // Escape the sentence text for use in regex
-            const escapedSentence = s.sentence.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            // Encode translation for data attribute
-            const encodedTranslation = encodeURIComponent(s.explanation);
-            const btnHtml = `<button class="dg-book-btn" data-translation="${encodedTranslation}" type="button" title="Translate sentence"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button>`;
-            // Replace the sentence text with book-icon + sentence
-            try {
-              const sentenceRegex = new RegExp("(" + escapedSentence + ")", "g");
-              html = html.replace(sentenceRegex, btnHtml + "$1");
-            } catch {}
-          }
-        });
-      }
 
       return html;
     },
@@ -344,17 +348,6 @@ export default function EditorialViewer({
     );
   }
 
-  if (error || !articles.length) {
-    return (
-      <div className="dg-container dg-center">
-        <div className="dg-error-box">
-          <h2>Could not load content</h2>
-          <p>{error || "Data unavailable for this date."}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="dg-container">
       <div className="dg-ambient" />
@@ -401,8 +394,16 @@ export default function EditorialViewer({
         </div>
       </header>
 
-      {/* ===== ARTICLES ===== */}
-      <main className="dg-main">
+      {/* ===== ARTICLES OR ERROR ===== */}
+      {(error || !articles.length) ? (
+        <main className="dg-main dg-center" style={{ minHeight: "60vh" }}>
+          <div className="dg-error-box">
+            <h2>Could not load content</h2>
+            <p>{error || "Data unavailable for this date."}</p>
+          </div>
+        </main>
+      ) : (
+        <main className="dg-main">
         {articles.map((article, idx) => (
           <section key={idx} className="dg-article">
             {/* Article meta */}
@@ -467,6 +468,7 @@ export default function EditorialViewer({
           </section>
         ))}
       </main>
+      )}
 
       {/* ===== VOCAB POPUP (bottom sheet) ===== */}
       <div className={`dg-overlay ${popupWord ? "active" : ""}`} onClick={closePopup} />
