@@ -4,6 +4,7 @@ import { Loader2, ChevronDown, ChevronUp, CalendarIcon, ZoomIn, ZoomOut, Volume2
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import SEO from "@/components/SEO";
 import { Helmet } from "react-helmet-async";
@@ -115,16 +116,16 @@ const WordPopover = ({ word, hindi, definition, children }: { word: string; hind
   const [open, setOpen] = useState(false);
   
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <span 
           className="text-red-600 dark:text-red-400 font-semibold cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors px-1 rounded"
           onClick={() => setOpen(true)}
         >
           {children}
         </span>
-      </PopoverTrigger>
-      <PopoverContent className="w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] p-4 max-h-[80vh] overflow-y-auto">
+      </DialogTrigger>
+      <DialogContent className="w-[90vw] sm:w-80 max-w-sm p-4 rounded-lg">
         <button 
           onClick={() => setOpen(false)}
           className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
@@ -143,8 +144,8 @@ const WordPopover = ({ word, hindi, definition, children }: { word: string; hind
         </div>
         <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">{hindi}</p>
         <p className="text-slate-600 dark:text-slate-300 text-sm mt-2">{definition}</p>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -153,8 +154,8 @@ const SentencePopover = ({ sentence, explanation }: { sentence: string; explanat
   const [open, setOpen] = useState(false);
   
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <button 
           className="inline-flex items-center justify-center mr-1 text-lg align-middle hover:scale-110 transition-transform"
           onClick={() => setOpen(true)}
@@ -162,8 +163,8 @@ const SentencePopover = ({ sentence, explanation }: { sentence: string; explanat
         >
           📖
         </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[90vw] sm:w-96 max-w-[calc(100vw-2rem)] p-4 max-h-[80vh] overflow-y-auto">
+      </DialogTrigger>
+      <DialogContent className="w-[90vw] sm:w-96 max-w-md p-4 rounded-lg">
         <button 
           onClick={() => setOpen(false)}
           className="absolute top-1 right-2 text-xl text-slate-400 hover:text-slate-600"
@@ -176,8 +177,8 @@ const SentencePopover = ({ sentence, explanation }: { sentence: string; explanat
             <span className="font-semibold text-amber-600">➡️ हिंदी:</span> {explanation}
           </p>
         </div>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -258,7 +259,7 @@ const ArticleSection = ({ article, quizzes }: { article: Article; quizzes?: Quiz
   };
 
   return (
-    <div className="page bg-white dark:bg-slate-800 p-3 sm:p-6 rounded-lg shadow-sm mb-2">
+    <div className="page bg-white dark:bg-slate-800 p-2 sm:p-6 rounded-lg shadow-sm mb-2 w-full">
       
       {/* Dynamic SEO for this specific article */}
       {article && (
@@ -879,7 +880,7 @@ const EditorialViewer = ({
   // Header Component
   const Header = () => (
     <header className={`bg-white dark:bg-slate-900 p-4 sm:p-5 border-b-2 border-slate-200 dark:border-slate-700 ${headerHidden ? 'hidden' : ''}`}>
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full">
+      <div className="flex items-center justify-between w-full flex-nowrap overflow-x-auto overflow-y-hidden no-scrollbar pb-1 gap-2 sm:gap-4">
         <div className="flex-1 flex items-center gap-2">
           <Button
             variant="ghost"
@@ -891,11 +892,11 @@ const EditorialViewer = ({
           </Button>
         </div>
         <div className="flex-1 text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold font-serif text-slate-900 dark:text-slate-100 text-center w-full">
+          <h1 className="text-xl sm:text-4xl font-bold font-serif text-slate-900 dark:text-slate-100 whitespace-nowrap">
             The Dailygraph
           </h1>
         </div>
-        <div className="flex-1 flex justify-center sm:justify-end items-center gap-2 w-full flex-wrap">
+        <div className="flex justify-end items-center gap-1 sm:gap-2 shrink-0">
           {/* Zoom Controls */}
           <div className="flex items-center gap-1">
             <Button
@@ -934,15 +935,15 @@ const EditorialViewer = ({
                 onSelect={(d) => d && onDateChange(d)}
                 initialFocus
               />
-            </PopoverContent>
-          </Popover>
+            </DialogContent>
+    </Dialog>
           
           {/* Telegram Link */}
           <a 
             href="https://t.me/thedailygraph" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-2 text-blue-600 hover:opacity-80"
+            className="flex items-center gap-2 text-blue-600 hover:opacity-80 shrink-0"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
               <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.62 12c-.88-.25-.89-1.02.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.58c-.28 1.13-1.04 1.4-1.74.88L14.25 16l-4.12 3.9c-.78.72-1.4.34-1.63-.55z" />
@@ -996,8 +997,8 @@ const EditorialViewer = ({
                     onSelect={(d) => d && onDateChange(d)}
                     initialFocus
                   />
-                </PopoverContent>
-              </Popover>
+                </DialogContent>
+    </Dialog>
             </div>
           </div>
         </div>
