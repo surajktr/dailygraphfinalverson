@@ -977,6 +977,7 @@ const EditorialViewer = ({
     return (
       <div className={isDarkMode ? 'dark' : ''}>
         <div className="min-h-screen bg-slate-100 dark:bg-slate-900">
+          <SEO title="Content Not Found | Dailygraph" noIndex={true} />
           <Header />
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
