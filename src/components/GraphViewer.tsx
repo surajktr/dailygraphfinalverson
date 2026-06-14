@@ -119,16 +119,36 @@ const GraphViewer = ({
           const contentStr = typeof data.html_content === 'string' 
             ? data.html_content 
             : JSON.stringify(data.html_content);
+          let wasExtracted = false;
           try {
             const parsed = typeof data.html_content === 'string' 
               ? JSON.parse(data.html_content) 
               : data.html_content;
             setJsonData(parsed);
             setIsJsonContent(true);
+            wasExtracted = true;
           } catch {
-            // It's HTML content
-            setHtmlContent(contentStr);
-            setIsJsonContent(false);
+            // Extract embedded JSON from the HTML string if it exists
+            if (typeof data.html_content === 'string' && data.html_content.includes('__INITIAL_DATA__')) {
+              try {
+                // Match the window.__INITIAL_DATA__ assignment
+                const match = data.html_content.match(/window\.__INITIAL_DATA__\s*=\s*(\{[\s\S]*?\});\s*<\/script>/);
+                if (match && match[1]) {
+                  const parsed = JSON.parse(match[1]);
+                  setJsonData(parsed);
+                  setIsJsonContent(true);
+                  wasExtracted = true;
+                }
+              } catch (e) {
+                console.error("Failed to parse embedded JSON", e);
+              }
+            }
+            
+            if (!wasExtracted) {
+              // It's raw HTML content (fallback)
+              setHtmlContent(contentStr);
+              setIsJsonContent(false);
+            }
           }
           onLoadSuccess?.();
         } else {
@@ -642,7 +662,7 @@ const GraphViewer = ({
       )}
 
       {/* Content Area */}
-      <div className={`flex-1 relative ${isMobile ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto sm:hide-scrollbar'}`}>
+      <div className={`flex-1 relative ${isMobile ? 'overflow-y-auto overflow-x-visible' : 'overflow-auto sm:hide-scrollbar'}`}>
         <div className="relative" style={{
         transform: `scale(${zoom / 100})`,
         transformOrigin: 'top left',
