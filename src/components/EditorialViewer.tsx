@@ -48,6 +48,8 @@ export default function EditorialViewer({
   const [popupWord, setPopupWord] = useState<VocabularyWord | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+  const [translationParagraph, setTranslationParagraph] = useState<{ sentence: string; explanation: string }[] | null>(null);
+  const translationRef = useRef<HTMLDivElement>(null);
 
   // Load learned words
   useEffect(() => {
@@ -138,9 +140,13 @@ export default function EditorialViewer({
 
     // Add book icons to paragraphs
     const paragraphs = processedHtml.split('</p>').filter(p => p.trim());
-    processedHtml = paragraphs.map(p => {
+    processedHtml = paragraphs.map((p, idx) => {
       if (p.trim() && p.includes('<p>')) {
-        return p + ` <svg class="premium-book-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></p>`;
+        // Strip tags for the paragraph text so we can match it
+        const cleanText = p.replace(/<[^>]+>/g, '').trim();
+        // Add a button wrapping the icon and attach a data-paragraph attribute containing the text
+        const encodedText = cleanText.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+        return p + ` <button class="premium-book-icon" data-paragraph-text="${encodedText}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></button></p>`;
       }
       return p;
     }).join('');
@@ -200,7 +206,7 @@ export default function EditorialViewer({
     window.speechSynthesis.speak(utterance);
   };
 
-  const closePopup = () => setPopupWord(null);
+  const closePopup = () => { setPopupWord(null); setTranslationParagraph(null); };
 
   // Calculate progress
   const totalWords = data ? data.reduce((acc, curr) => acc + curr.vocabulary.length, 0) : 0;
@@ -247,7 +253,7 @@ export default function EditorialViewer({
               <div className="premium-brand-icon">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
               </div>
-              <span className="premium-brand-text">The Dailygraph</span>
+              <span className="premium-brand-text">Dailygraph</span>
             </div>
             
             <div className="premium-header-actions">
@@ -306,7 +312,7 @@ export default function EditorialViewer({
         {/* Main Content */}
         <main className="premium-main-content">
           {data.map((article, idx) => (
-            <article key={idx} className="premium-article-card" style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top center', marginBottom: '24px' }}>
+            <article key={idx} className="premium-article-card" style={{ marginBottom: "24px" }}>
               <div className="premium-article-meta">
                 <span className="premium-category-tag">Editorial</span>
                 <span className="premium-read-time">
@@ -318,8 +324,9 @@ export default function EditorialViewer({
               <h1 className="premium-article-title">{article.title}</h1>
 
               <div 
-                className="premium-article-body" 
-                dangerouslySetInnerHTML={{ __html: renderProcessedBody(article) || '' }} 
+                className="premium-article-body"
+                style={{ fontSize: `${zoom}%` }}
+                dangerouslySetInnerHTML={{ __html: renderProcessedBody(article) || "" }} 
               />
             </article>
           ))}
@@ -379,12 +386,12 @@ export default function EditorialViewer({
               >
                 {learnedWords.includes(popupWord.word.toLowerCase()) ? (
                   <>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    
                     <span>Learned</span>
                   </>
                 ) : (
                   <>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    
                     <span>Mark as Learned</span>
                   </>
                 )}
