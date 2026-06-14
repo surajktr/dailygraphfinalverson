@@ -7,7 +7,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+    const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ status: 'error', message: 'Missing DB config' });

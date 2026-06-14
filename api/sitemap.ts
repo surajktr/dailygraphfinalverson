@@ -17,7 +17,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+    const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Missing Supabase configuration');
