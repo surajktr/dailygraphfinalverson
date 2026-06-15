@@ -77,6 +77,7 @@ export default function EditorialViewer({
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   // Calendar state
+  const [calOpen, setCalOpen] = useState(false);
   const [dateVal, setDateVal] = useState<Date | undefined>(new Date(date));
   
   // Vocab visibility state
