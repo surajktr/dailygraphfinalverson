@@ -77,7 +77,10 @@ export default function EditorialViewer({
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   // Calendar state
-  const [calOpen, setCalOpen] = useState(false);
+  const [dateVal, setDateVal] = useState<Date | undefined>(new Date(date));
+  
+  // Vocab visibility state
+  const [vocabVisibility, setVocabVisibility] = useState<Record<number, 'hidden' | 'partial' | 'full'>>({});
   const [calMonth, setCalMonth] = useState(new Date(date).getMonth());
   const [calYear, setCalYear] = useState(new Date(date).getFullYear());
 
@@ -476,13 +479,20 @@ export default function EditorialViewer({
             {/* ===== VOCAB LIST ===== */}
             {article.vocabulary && article.vocabulary.length > 0 && (
               <div className="dg-vocab-list">
-                <div className="dg-vocab-list-header">
+                <div className="dg-vocab-list-header" style={{ cursor: 'pointer', userSelect: 'none' }} onClick={() => {
+                  setVocabVisibility(prev => ({
+                    ...prev,
+                    [i]: prev[i] === 'hidden' || !prev[i] ? 'partial' : 'hidden'
+                  }));
+                }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                   <span>Difficult Words</span>
                   <span className="dg-vocab-count">{article.vocabulary.length}</span>
+                  <span className="ml-auto text-xs text-blue-500 font-semibold uppercase">{vocabVisibility[i] && vocabVisibility[i] !== 'hidden' ? 'Hide' : 'Show'}</span>
                 </div>
+                {vocabVisibility[i] && vocabVisibility[i] !== 'hidden' && (
                 <div className="dg-vocab-items">
-                  {article.vocabulary.map((v, vi) => {
+                  {article.vocabulary.slice(0, vocabVisibility[i] === 'partial' ? 5 : undefined).map((v, vi) => {
                     const isLearned = learnedWords.includes(v.word.toLowerCase());
                     return (
                       <div key={vi} className={`dg-vocab-item ${isLearned ? "learned" : ""}`}>
@@ -513,7 +523,13 @@ export default function EditorialViewer({
                       </div>
                     );
                   })}
+                  {vocabVisibility[i] === 'partial' && article.vocabulary.length > 5 && (
+                    <button onClick={() => setVocabVisibility(prev => ({...prev, [i]: 'full'}))} className="w-full py-2 mt-1 text-sm text-blue-500 font-semibold hover:underline bg-transparent border-none cursor-pointer">
+                      See {article.vocabulary.length - 5} more words
+                    </button>
+                  )}
                 </div>
+                )}
               </div>
             )}
           </section>

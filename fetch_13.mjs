@@ -78,7 +78,8 @@ function extractArticleText(html) {
         });
     }
     
-    if (!text.trim()) {
+    if (!text.replace(/[\s\u200B]+/g, '').trim()) {
+        text = '';
         const allP = html.match(/<p[^>]*>([\s\S]*?)<\/p>/gi);
         if (allP) {
             allP.forEach(p => {
@@ -109,7 +110,8 @@ function extractArticleText(html) {
 
 async function uploadToWebsite(htmlContent, title) {
     console.log('Uploading HTML to website via Supabase API...');
-    const uploadDate = '2026-06-13';
+    const istNow = new Date(new Date().getTime() + (5.5 * 60 * 60 * 1000));
+    const uploadDate = istNow.toISOString().split('T')[0];
     
     const response = await fetch('https://cdwikwwpakmlauiddasz.supabase.co/functions/v1/content-upload-api', {
         method: 'POST',

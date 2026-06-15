@@ -56,7 +56,6 @@ html, body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: calc(100vh - 40px);
   transition: background 0.4s ease, color 0.4s ease;
   position: relative;
   overflow-x: hidden;
@@ -167,7 +166,7 @@ html, body {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: none;
+  border: 1px solid var(--dg-border);
   background: var(--bg2);
   color: var(--text2);
   display: flex;
@@ -371,9 +370,9 @@ html, body {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 1.5px solid var(--dg-border);
-  background: var(--bg2);
-  color: var(--text2);
+  border: 1px solid var(--dg-border);
+  background: var(--accent-bg);
+  color: var(--dg-accent);
   display: flex;
   align-items: center;
   justify-content: center;
