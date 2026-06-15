@@ -386,7 +386,7 @@ export default function EditorialViewer({
     setCalOpen(false);
   };
 
-  if (loading) {
+  if (loading || (!articles.length && !error)) {
     return (
       <div className="dg-container dg-center">
         <div className="dg-loader">
